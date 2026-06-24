@@ -1,0 +1,27 @@
+Backend Software Engineer - Python / Django
+
+We are looking for a Backend Software Engineer with 2+ years of experience building production systems.
+
+Requirements:
+- Strong Python and Django experience
+- Experience with PostgreSQL and Redis
+- Familiarity with REST API design and Django REST Framework
+- Experience with Celery for async task processing
+- Knowledge of Docker and AWS deployment
+- Understanding of Elasticsearch for search
+- Experience with LLM integration and OpenAI API
+- Familiarity with React or AngularJS is a plus
+
+Responsibilities:
+- Design and implement scalable backend APIs
+- Optimize database queries for performance
+- Build AI-powered features using OpenAI API
+- Write clean, well-documented code
+- Collaborate with frontend engineers and PMs
+- Deploy and maintain production infrastructure on AWS
+
+Nice to have:
+- Experience with Shopify API integration
+- Knowledge of Nginx and production deployment
+- FastAPI or Flask experience
+- TypeScript / Node.js experience
