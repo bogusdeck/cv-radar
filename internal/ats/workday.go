@@ -9,35 +9,46 @@ import (
 
 // WorkdayEngine simulates Workday + HiredScore AI behavior:
 // - Exact keyword matching + title matching
-// - Penalizes creative/complex formatting
+// - Penalizes creative/complex formatting  
 // - Strict section parsing (ignores headers/footers)
 // - Weight: Title(30%) Skills-exact(40%) Experience-years(20%) Education(10%)
+// Confidence: 72% — HiredScore weighting is proprietary but behavior is well-documented
 type WorkdayEngine struct{}
 
 func (e *WorkdayEngine) Name() string   { return "Workday" }
 func (e *WorkdayEngine) Vendor() string { return "Workday" }
 
 func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
-	keywords := extractKeywords(jd)
-	matched, missing := exactMatch(cv.RawText, keywords)
+	keywords := extractWeightedKeywords(jd)
+	matched, missing, kwScore := weightedExactMatch(cv.RawText, keywords)
 
-	// Keyword score (40% weight)
-	kwRatio := 0.0
-	if len(keywords) > 0 {
-		kwRatio = float64(len(matched)) / float64(len(keywords))
+	// Workday strictly weights required keywords more — apply penalty for missing required ones
+	requiredMissing := 0
+	for _, kw := range keywords {
+		if kw.Weight >= 0.9 {
+			found := false
+			for _, m := range matched {
+				if m == kw.Word {
+					found = true
+					break
+				}
+			}
+			if !found {
+				requiredMissing++
+			}
+		}
 	}
-	kwScore := scoreToPercent(kwRatio)
+	// Each missing required keyword is a heavier penalty for Workday
+	requiredPenalty := float64(requiredMissing) * 3.0
+	kwScore = kwScore - requiredPenalty
+	if kwScore < 0 {
+		kwScore = 0
+	}
 
-	// Title match (30% weight) — check if CV job titles match JD title keywords
 	titleScore := calcTitleScore(cv, jd)
-
-	// Experience years (20% weight)
 	expScore := calcExpScore(cv.YearsExp, jd)
-
-	// Education (10% weight)
 	eduScore := calcEduScore(cv)
 
-	// Format penalties
 	var warnings []string
 	formatPenalty := 0.0
 	issues := detectFormatIssues(cv.RawText)
@@ -50,14 +61,20 @@ func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult 
 	if total < 0 {
 		total = 0
 	}
+	if total > 100 {
+		total = 100
+	}
 
 	var recs []string
-	recs = append(recs, buildKeywordRecs(missing, "exact")...)
+	recs = append(recs, buildKeywordRecs(missing, keywords, "exact")...)
 	if titleScore < 50 {
 		recs = append(recs, "Align your job title more closely with the target role title")
 	}
 	if formatPenalty > 0 {
 		recs = append(recs, "Use a simple single-column ATS-friendly format; avoid tables and special characters")
+	}
+	if requiredMissing > 0 {
+		recs = append(recs, fmt.Sprintf("%d required keywords are missing — Workday heavily penalizes this", requiredMissing))
 	}
 
 	return models.ATSResult{
@@ -65,6 +82,8 @@ func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult 
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
+		Confidence:      72,
+		SimulationNote:  "HiredScore AI weights are proprietary. Exact match behavior and format penalties are well-documented. Score may vary ±10-15 points.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  round(100 - formatPenalty),
 		ExperienceScore: round(expScore),
@@ -75,7 +94,7 @@ func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult 
 		Recommendations: recs,
 		AutoReject:      total < 30,
 		Breakdown: []models.ScoreBreakdown{
-			{Category: "Keyword Match (Exact)", Score: kwScore, MaxScore: 100, Weight: 0.40},
+			{Category: "Weighted Keyword Match (Exact)", Score: kwScore, MaxScore: 100, Weight: 0.40},
 			{Category: "Title Alignment", Score: titleScore, MaxScore: 100, Weight: 0.30},
 			{Category: "Experience Years", Score: expScore, MaxScore: 100, Weight: 0.20},
 			{Category: "Education", Score: eduScore, MaxScore: 100, Weight: 0.10},
@@ -91,7 +110,6 @@ func calcTitleScore(cv models.ParsedCV, jd string) float64 {
 	hits := 0
 	for _, kw := range titleKeywords {
 		if strings.Contains(jdLower, kw) {
-			// Check if it appears in any of the CV job titles
 			for _, job := range cv.Experience {
 				if strings.Contains(strings.ToLower(job.Title), kw) {
 					hits++
@@ -107,14 +125,15 @@ func calcTitleScore(cv models.ParsedCV, jd string) float64 {
 }
 
 func calcExpScore(yearsExp float64, jd string) float64 {
-	// Try to detect required years in JD
 	required := 2.0
 	jdLower := strings.ToLower(jd)
-	if strings.Contains(jdLower, "5+ years") || strings.Contains(jdLower, "5 years") {
+	if strings.Contains(jdLower, "7+") || strings.Contains(jdLower, "7 years") {
+		required = 7
+	} else if strings.Contains(jdLower, "5+") || strings.Contains(jdLower, "5 years") {
 		required = 5
-	} else if strings.Contains(jdLower, "3+ years") || strings.Contains(jdLower, "3 years") {
+	} else if strings.Contains(jdLower, "3+") || strings.Contains(jdLower, "3 years") {
 		required = 3
-	} else if strings.Contains(jdLower, "1+ year") || strings.Contains(jdLower, "1 year") {
+	} else if strings.Contains(jdLower, "1+") || strings.Contains(jdLower, "1 year") {
 		required = 1
 	}
 	if yearsExp >= required {
@@ -129,25 +148,51 @@ func calcEduScore(cv models.ParsedCV) float64 {
 	}
 	for _, edu := range cv.Education {
 		lower := strings.ToLower(edu.Degree)
-		if strings.Contains(lower, "bachelor") || strings.Contains(lower, "b.tech") || strings.Contains(lower, "b.e") {
-			return 85
-		}
 		if strings.Contains(lower, "master") || strings.Contains(lower, "m.tech") {
 			return 100
+		}
+		if strings.Contains(lower, "bachelor") || strings.Contains(lower, "b.tech") || strings.Contains(lower, "b.e") {
+			return 85
 		}
 	}
 	return 60
 }
 
-func buildKeywordRecs(missing []string, matchType string) []string {
+// buildKeywordRecs picks the top missing REQUIRED keywords to recommend
+func buildKeywordRecs(missing []string, keywords []WeightedKeyword, matchType string) []string {
 	if len(missing) == 0 {
 		return nil
 	}
-	top := missing
+
+	// prioritize high-weight missing keywords
+	weightMap := map[string]float64{}
+	for _, kw := range keywords {
+		weightMap[kw.Word] = kw.Weight
+	}
+
+	type mw struct{ word string; w float64 }
+	var ranked []mw
+	for _, m := range missing {
+		ranked = append(ranked, mw{m, weightMap[m]})
+	}
+	// sort by weight desc
+	for i := 0; i < len(ranked)-1; i++ {
+		for j := i + 1; j < len(ranked); j++ {
+			if ranked[j].w > ranked[i].w {
+				ranked[i], ranked[j] = ranked[j], ranked[i]
+			}
+		}
+	}
+
+	top := ranked
 	if len(top) > 8 {
 		top = top[:8]
 	}
-	return []string{fmt.Sprintf("Add these missing keywords (%s): %s", matchType, strings.Join(top, ", "))}
+	words := make([]string, len(top))
+	for i, r := range top {
+		words[i] = r.word
+	}
+	return []string{fmt.Sprintf("Add these missing keywords (%s, highest priority first): %s", matchType, strings.Join(words, ", "))}
 }
 
 func round(f float64) float64 {

@@ -1,52 +1,67 @@
 package ats
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/bogusdeck/ats-scanner/internal/models"
 )
 
-// TaleoEngine simulates Oracle Taleo behavior:
-// - Strictest: literal exact string matching only
-// - Auto-reject (Req Rank) if below ~40% threshold
-// - Weight: Exact-keywords(60%) Title(25%) Years(15%)
+// TaleoEngine — Oracle Taleo
+// Strictest: literal exact string matching ONLY (no stemming, no synonyms)
+// Auto-reject (Req Rank) below ~40% threshold
+// Abbreviation-blind by default
+// Confidence: 80% — Taleo's exact-match behavior is very well-documented
 type TaleoEngine struct{}
 
 func (e *TaleoEngine) Name() string   { return "Taleo" }
 func (e *TaleoEngine) Vendor() string { return "Oracle" }
 
 func (e *TaleoEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
-	keywords := extractKeywords(jd)
-	matched, missing := exactMatch(cv.RawText, keywords)
+	keywords := extractWeightedKeywords(jd)
+	// Taleo: no bonus for synonyms, only exact literal match counts
+	matched, missing, kwScore := weightedExactMatch(cv.RawText, keywords)
 
-	kwRatio := 0.0
-	if len(keywords) > 0 {
-		kwRatio = float64(len(matched)) / float64(len(keywords))
+	// Extra penalty: Taleo checks for full-form vs abbreviation mismatches
+	abbrevPenalty := calcAbbrevPenalty(cv.RawText, jd)
+	kwScore = kwScore - abbrevPenalty
+	if kwScore < 0 {
+		kwScore = 0
 	}
-	kwScore := scoreToPercent(kwRatio)
+
 	titleScore := calcTitleScore(cv, jd)
 	expScore := calcExpScore(cv.YearsExp, jd)
 
+	// Taleo Req Rank: weighted sum, strict thresholds
 	total := kwScore*0.60 + titleScore*0.25 + expScore*0.15
+
+	// Taleo auto-rejects earlier than other platforms
 	autoReject := total < 40
 
 	var warnings []string
 	if autoReject {
-		warnings = append(warnings, "Score is below Taleo Req Rank threshold (~40%) — likely auto-rejected before human review")
+		warnings = append(warnings, fmt.Sprintf("Score %.0f%% is below Taleo's Req Rank threshold (~40%%) — likely auto-rejected before human review", total))
+	}
+	if abbrevPenalty > 0 {
+		warnings = append(warnings, fmt.Sprintf("Abbreviation mismatch detected (–%.0f%% penalty): Taleo requires exact spelling", abbrevPenalty))
 	}
 
 	var recs []string
-	recs = append(recs, buildKeywordRecs(missing, "exact literal")...)
+	recs = append(recs, buildKeywordRecs(missing, keywords, "exact literal")...)
 	recs = append(recs, "Taleo does NOT support synonyms — mirror exact phrasing from the JD")
-	recs = append(recs, "Avoid abbreviations: write the full term if the JD uses the full term")
+	recs = append(recs, "Spell out full forms: 'JavaScript' not 'JS', 'PostgreSQL' not 'Postgres', 'Application Programming Interface' not 'API' if JD uses full form")
 
 	return models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
+		Confidence:      80,
+		SimulationNote:  "Taleo's exact-match and Req Rank behavior is well-documented. Score may vary ±8 points depending on recruiter configuration.",
 		KeywordScore:    round(kwScore),
-		StructureScore:  80,
+		StructureScore:  78,
 		ExperienceScore: round(expScore),
-		EducationScore:  0,
+		EducationScore:  round(calcEduScore(cv)),
 		MatchedKeywords: matched,
 		MissingKeywords: missing,
 		Warnings:        warnings,
@@ -58,4 +73,23 @@ func (e *TaleoEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 			{Category: "Experience Years", Score: expScore, MaxScore: 100, Weight: 0.15},
 		},
 	}
+}
+
+func calcAbbrevPenalty(cvText, jd string) float64 {
+	abbrevPairs := map[string]string{
+		"js": "javascript", "ts": "typescript", "py": "python",
+		"pg": "postgresql", "k8s": "kubernetes",
+	}
+	penalty := 0.0
+	cvLower := strings.ToLower(cvText)
+	jdLower := strings.ToLower(jd)
+	for abbrev, full := range abbrevPairs {
+		cvHasAbbrev := strings.Contains(cvLower, " "+abbrev+" ")
+		jdHasFull := strings.Contains(jdLower, full)
+		cvMissesFull := !strings.Contains(cvLower, full)
+		if cvHasAbbrev && jdHasFull && cvMissesFull {
+			penalty += 4.0
+		}
+	}
+	return penalty
 }

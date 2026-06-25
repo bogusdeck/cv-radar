@@ -2,18 +2,20 @@ package models
 
 // ParsedCV holds structured data extracted from a CV
 type ParsedCV struct {
-	RawText    string   `json:"raw_text"`
-	Name       string   `json:"name"`
-	Email      string   `json:"email"`
-	Phone      string   `json:"phone"`
-	Location   string   `json:"location"`
-	Summary    string   `json:"summary"`
-	Skills     []string `json:"skills"`
-	Experience []Job    `json:"experience"`
-	Projects   []Project `json:"projects"`
-	Education  []Edu    `json:"education"`
-	Links      []string `json:"links"`
-	YearsExp   float64  `json:"years_exp"`
+	RawText           string    `json:"raw_text"`
+	Name              string    `json:"name"`
+	Email             string    `json:"email"`
+	Phone             string    `json:"phone"`
+	Location          string    `json:"location"`
+	Summary           string    `json:"summary"`
+	Skills            []string  `json:"skills"`
+	SkillsInSection   []string  `json:"skills_in_section"`   // skills found in the dedicated Skills section
+	SkillsInExperience []string `json:"skills_in_experience"` // skills found in experience bullets
+	Experience        []Job     `json:"experience"`
+	Projects          []Project `json:"projects"`
+	Education         []Edu     `json:"education"`
+	Links             []string  `json:"links"`
+	YearsExp          float64   `json:"years_exp"`
 }
 
 type Job struct {
@@ -51,19 +53,21 @@ type AnalysisResponse struct {
 
 // ATSResult holds the score and breakdown for one ATS platform
 type ATSResult struct {
-	Platform        string          `json:"platform"`
-	Vendor          string          `json:"vendor"`
-	Score           float64         `json:"score"`           // 0–100
-	Grade           string          `json:"grade"`           // A, B, C, D, F
-	KeywordScore    float64         `json:"keyword_score"`
-	StructureScore  float64         `json:"structure_score"`
-	ExperienceScore float64         `json:"experience_score"`
-	EducationScore  float64         `json:"education_score"`
-	MatchedKeywords []string        `json:"matched_keywords"`
-	MissingKeywords []string        `json:"missing_keywords"`
-	Warnings        []string        `json:"warnings"`
-	Recommendations []string        `json:"recommendations"`
-	AutoReject      bool            `json:"auto_reject"`
+	Platform        string           `json:"platform"`
+	Vendor          string           `json:"vendor"`
+	Score           float64          `json:"score"`           // 0–100
+	Grade           string           `json:"grade"`           // A, B, C, D, F
+	Confidence      float64          `json:"confidence"`      // 0–100: how well we can simulate this platform
+	SimulationNote  string           `json:"simulation_note"` // human-readable accuracy caveat
+	KeywordScore    float64          `json:"keyword_score"`
+	StructureScore  float64          `json:"structure_score"`
+	ExperienceScore float64          `json:"experience_score"`
+	EducationScore  float64          `json:"education_score"`
+	MatchedKeywords []string         `json:"matched_keywords"`
+	MissingKeywords []string         `json:"missing_keywords"`
+	Warnings        []string         `json:"warnings"`
+	Recommendations []string         `json:"recommendations"`
+	AutoReject      bool             `json:"auto_reject"`
 	Breakdown       []ScoreBreakdown `json:"breakdown"`
 }
 

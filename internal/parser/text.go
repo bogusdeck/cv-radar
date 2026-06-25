@@ -353,43 +353,79 @@ func calculateYearsExp(jobs []models.Job) float64 {
 		return 0
 	}
 
-	total := 0.0
-	dateRe := regexp.MustCompile(`(?i)(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})`)
+	// Match full date patterns like "Dec 2024", "Aug 2024", "2023", "Present"
+	fullDateRe := regexp.MustCompile(`(?i)(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s\-]+(\d{4})|(\d{4})|(present|now|current)`)
 
+	total := 0.0
 	for _, job := range jobs {
-		months := dateRe.FindAllString(job.Duration, -1)
-		if len(months) >= 2 {
-			start := parseApproxDate(months[0])
-			var end time.Time
-			if strings.Contains(strings.ToLower(job.Duration), "present") ||
-				strings.Contains(strings.ToLower(job.Duration), "current") {
-				end = time.Now()
-			} else {
-				end = parseApproxDate(months[len(months)-1])
-			}
-			diff := end.Sub(start).Hours() / 8760
-			if diff > 0 {
-				total += diff
-			}
+		dur := job.Duration
+		if dur == "" {
+			continue
+		}
+
+		matches := fullDateRe.FindAllStringSubmatch(dur, -1)
+		if len(matches) < 1 {
+			continue
+		}
+
+		// Parse start date from first match
+		start := parseDateMatch(matches[0])
+		if start.IsZero() {
+			continue
+		}
+
+		// Parse end date
+		var end time.Time
+		if len(matches) >= 2 {
+			end = parseDateMatch(matches[len(matches)-1])
+		}
+		if end.IsZero() {
+			end = time.Now()
+		}
+
+		diff := end.Sub(start).Hours() / 8760.0
+		if diff > 0 && diff < 20 { // sanity cap
+			total += diff
 		}
 	}
 
+	// Cap total at 30 years
+	if total > 30 {
+		total = 30
+	}
 	return math.Round(total*10) / 10
 }
 
-func parseApproxDate(s string) time.Time {
-	s = strings.TrimSpace(strings.ToLower(s))
-	months := map[string]int{
+func parseDateMatch(m []string) time.Time {
+	// m[0]=full, m[1]=month abbr, m[2]=year-after-month, m[3]=bare-year, m[4]=present
+	monthMap := map[string]int{
 		"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
 		"jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
 	}
-	if m, ok := months[s]; ok {
-		return time.Date(time.Now().Year(), time.Month(m), 1, 0, 0, 0, 0, time.UTC)
+
+	// present/now/current
+	if len(m) > 4 && strings.ToLower(m[4]) != "" {
+		return time.Now()
 	}
-	if y, err := strconv.Atoi(s); err == nil {
-		return time.Date(y, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	// "Dec 2024" style
+	if len(m) > 2 && m[1] != "" && m[2] != "" {
+		mo := monthMap[strings.ToLower(m[1])]
+		yr, err := strconv.Atoi(m[2])
+		if err == nil && yr > 1990 && yr <= time.Now().Year()+1 {
+			return time.Date(yr, time.Month(mo), 1, 0, 0, 0, 0, time.UTC)
+		}
 	}
-	return time.Now()
+
+	// bare year "2023"
+	if len(m) > 3 && m[3] != "" {
+		yr, err := strconv.Atoi(m[3])
+		if err == nil && yr > 1990 && yr <= time.Now().Year()+1 {
+			return time.Date(yr, 6, 1, 0, 0, 0, 0, time.UTC) // mid-year estimate
+		}
+	}
+
+	return time.Time{} // zero = unknown
 }
 
 func min(a, b int) int {

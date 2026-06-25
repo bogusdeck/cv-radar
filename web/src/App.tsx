@@ -23,6 +23,8 @@ interface ATSResult {
   vendor: string
   score: number
   grade: string
+  confidence: number
+  simulation_note: string
   keyword_score: number
   structure_score: number
   experience_score: number
@@ -57,6 +59,20 @@ function ScoreCircle({ score, grade }: { score: number; grade: string }) {
   )
 }
 
+function ConfidencePill({ confidence }: { confidence: number }) {
+  const color = confidence >= 70 ? 'var(--green)' : confidence >= 55 ? 'var(--yellow)' : 'var(--orange)'
+  const label = confidence >= 70 ? 'High confidence' : confidence >= 55 ? 'Med confidence' : 'Low confidence'
+  return (
+    <span style={{
+      fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px', borderRadius: '99px',
+      border: `1px solid ${color}22`, background: `${color}11`, color,
+      whiteSpace: 'nowrap'
+    }}>
+      ~{Math.round(confidence)}% · {label}
+    </span>
+  )
+}
+
 function ResultCard({ result, selected, onClick }: { result: ATSResult; selected: boolean; onClick: () => void }) {
   const topMatched = (result.matched_keywords || []).slice(0, 5)
   const topMissing = (result.missing_keywords || []).slice(0, 4)
@@ -69,7 +85,10 @@ function ResultCard({ result, selected, onClick }: { result: ATSResult; selected
       <div className="result-header">
         <div className="platform-info">
           <div className="platform-name">{PLATFORM_EMOJIS[result.platform]} {result.platform}</div>
-          <div className="vendor-name">by {result.vendor}</div>
+          <div className="vendor-name" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '4px' }}>
+            by {result.vendor}
+            <ConfidencePill confidence={result.confidence} />
+          </div>
           {result.auto_reject && (
             <div className="auto-reject-badge">⛔ Auto-Reject Risk</div>
           )}
@@ -99,9 +118,24 @@ function DetailPanel({ result, onClose }: { result: ATSResult; onClose: () => vo
       <div className="detail-header">
         <div>
           <div className="detail-title">{PLATFORM_EMOJIS[result.platform]} {result.platform} Deep Analysis</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-            by {result.vendor} · Overall Score: <strong style={{ color: 'var(--text-primary)' }}>{result.score}/100</strong> · Grade: <strong style={{ color: `var(--grade-${result.grade})` }}>{result.grade}</strong>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+            <span>by {result.vendor}</span>
+            <span>·</span>
+            <strong style={{ color: 'var(--text-primary)' }}>{result.score}/100</strong>
+            <span>·</span>
+            <strong style={{ color: `var(--grade-${result.grade})` }}>Grade {result.grade}</strong>
+            <span>·</span>
+            <ConfidencePill confidence={result.confidence} />
           </div>
+          {result.simulation_note && (
+            <div style={{
+              marginTop: '0.5rem', padding: '0.5rem 0.75rem',
+              background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.2)',
+              borderRadius: '8px', fontSize: '0.75rem', color: '#fde68a', lineHeight: 1.5
+            }}>
+              ⚠️ <strong>Simulation accuracy:</strong> {result.simulation_note}
+            </div>
+          )}
         </div>
         <button
           onClick={onClose}
