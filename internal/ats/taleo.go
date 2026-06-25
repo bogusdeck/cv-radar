@@ -51,13 +51,13 @@ func (e *TaleoEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 	recs = append(recs, "Taleo does NOT support synonyms — mirror exact phrasing from the JD")
 	recs = append(recs, "Spell out full forms: 'JavaScript' not 'JS', 'PostgreSQL' not 'Postgres', 'Application Programming Interface' not 'API' if JD uses full form")
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
-		Confidence:      80,
-		SimulationNote:  "Taleo's exact-match and Req Rank behavior is well-documented. Score may vary ±8 points depending on recruiter configuration.",
+		Confidence:      62,
+		SimulationNote:  "Legacy Taleo uses exact-phrase indexing (well-documented). But there is NO universal Req Rank threshold — it is employer-configured. Oracle Recruiting Cloud (modern Taleo) uses ML scoring 0-5 per dimension. Our simulation models legacy Taleo behavior only.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  78,
 		ExperienceScore: round(expScore),
@@ -72,7 +72,7 @@ func (e *TaleoEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 			{Category: "Title Alignment", Score: titleScore, MaxScore: 100, Weight: 0.25},
 			{Category: "Experience Years", Score: expScore, MaxScore: 100, Weight: 0.15},
 		},
-	}
+	})
 }
 
 func calcAbbrevPenalty(cvText, jd string) float64 {

@@ -22,6 +22,8 @@ interface ATSResult {
   platform: string
   vendor: string
   score: number
+  score_low: number
+  score_high: number
   grade: string
   confidence: number
   simulation_note: string
@@ -50,11 +52,14 @@ interface AnalysisResponse {
   results: ATSResult[]
 }
 
-function ScoreCircle({ score, grade }: { score: number; grade: string }) {
+function ScoreCircle({ score, grade, low, high }: { score: number; grade: string; low: number; high: number }) {
   return (
     <div className={`score-circle grade-${grade}`}>
       <span className="score-number">{Math.round(score)}</span>
       <span className="score-label">{grade}</span>
+      <span style={{ fontSize: '0.55rem', opacity: 0.6, marginTop: '2px', whiteSpace: 'nowrap' }}>
+        {Math.round(low)}–{Math.round(high)}
+      </span>
     </div>
   )
 }
@@ -93,7 +98,7 @@ function ResultCard({ result, selected, onClick }: { result: ATSResult; selected
             <div className="auto-reject-badge">⛔ Auto-Reject Risk</div>
           )}
         </div>
-        <ScoreCircle score={result.score} grade={result.grade} />
+        <ScoreCircle score={result.score} grade={result.grade} low={result.score_low} high={result.score_high} />
       </div>
 
       <div className="progress-bar">
@@ -430,7 +435,16 @@ export default function App() {
         {/* Results grid */}
         {response && (
           <div className="results-panel">
-            <div className="card-title">Platform Results</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div className="card-title" style={{ marginBottom: 0 }}>Platform Results</div>
+              <div style={{
+                padding: '0.4rem 0.8rem', background: 'rgba(234,179,8,0.06)',
+                border: '1px solid rgba(234,179,8,0.25)', borderRadius: '8px',
+                fontSize: '0.72rem', color: '#fde68a', display: 'flex', alignItems: 'center', gap: '0.4rem'
+              }}>
+                ⚠️ <strong>Simulation</strong> — scores are estimates, not real ATS outputs. Score ranges shown on each card. Click a card for accuracy details.
+              </div>
+            </div>
             <div className="results-grid">
               {response.results.map(r => (
                 <ResultCard

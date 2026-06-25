@@ -77,13 +77,13 @@ func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult 
 		recs = append(recs, fmt.Sprintf("%d required keywords are missing — Workday heavily penalizes this", requiredMissing))
 	}
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
-		Confidence:      72,
-		SimulationNote:  "HiredScore AI weights are proprietary. Exact match behavior and format penalties are well-documented. Score may vary ±10-15 points.",
+		Confidence:      58,
+		SimulationNote:  "HiredScore uses A/B/C/D tier grading (not a %) based on career trajectory, tenure, and contextual skill alignment — NOT keyword density. This simulation uses keyword matching as a proxy, which underestimates HiredScore's semantic intelligence. Real score may vary significantly. No auto-reject threshold exists — HiredScore only surfaces prioritization tiers.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  round(100 - formatPenalty),
 		ExperienceScore: round(expScore),
@@ -99,7 +99,7 @@ func (e *WorkdayEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult 
 			{Category: "Experience Years", Score: expScore, MaxScore: 100, Weight: 0.20},
 			{Category: "Education", Score: eduScore, MaxScore: 100, Weight: 0.10},
 		},
-	}
+	})
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

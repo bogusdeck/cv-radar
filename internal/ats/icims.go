@@ -17,11 +17,9 @@ func (e *ICIMSEngine) Vendor() string { return "iCIMS" }
 
 func (e *ICIMSEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 	keywords := extractWeightedKeywords(jd)
-	// iCIMS uses semantic + synonym matching — use stemmed weighted match
 	matched, missing, kwScore := weightedStemmedMatch(cv.RawText, keywords)
 
-	// Semantic similarity bonus — iCIMS rewards contextual relevance
-	semanticBonus := tfidfSimilarity(cv.RawText, jd) * 40 // up to 40pt bonus
+	semanticBonus := tfidfSimilarity(cv.RawText, jd) * 40
 	if semanticBonus > 40 {
 		semanticBonus = 40
 	}
@@ -31,9 +29,8 @@ func (e *ICIMSEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 	expScore := calcExpScore(cv.YearsExp, jd)
 	eduScore := calcEduScore(cv)
 
-	// iCIMS: semantic(40%) + keyword(30%) + structure(20%) + education(10%)
 	base := kwScore*0.30 + skillScore*0.20 + structureScore*0.20 + expScore*0.20 + eduScore*0.10
-	total := base + semanticBonus*0.3 // semantic is a bonus, not dominant
+	total := base + semanticBonus*0.3
 	if total > 100 {
 		total = 100
 	}
@@ -50,13 +47,13 @@ func (e *ICIMSEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 		recs = append(recs, "Improve CV structure: use clear section headers (Summary, Experience, Skills, Education)")
 	}
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
-		Confidence:      60,
-		SimulationNote:  "iCIMS Role Fit AI uses proprietary ML. We approximate with TF-IDF + stemming. Score may vary ±15 points vs real iCIMS.",
+		Confidence:      40,
+		SimulationNote:  "iCIMS Role Fit is RELATIVE, not absolute — it ranks you within the applicant pool for that specific job. The same CV can be Tier 1 for one job and Tier 3 for another depending on who else applied. No percentage output exists. Our score is an approximation of keyword/skill alignment only.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  round(structureScore),
 		ExperienceScore: round(expScore),
@@ -73,14 +70,13 @@ func (e *ICIMSEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 			{Category: "Experience Match", Score: expScore, MaxScore: 100, Weight: 0.20},
 			{Category: "Education", Score: eduScore, MaxScore: 100, Weight: 0.10},
 		},
-	}
+	})
 }
 
 // ─── Greenhouse ──────────────────────────────────────────────────────────────
 
 // GreenhouseEngine — Greenhouse (human-first)
 // LLM-style broad semantic matching; no auto-scoring; scorecards filled by humans
-// This is the most generous platform — it rarely auto-rejects
 // Confidence: 50% — Greenhouse intentionally has no auto-scoring algorithm
 type GreenhouseEngine struct{}
 
@@ -91,7 +87,6 @@ func (e *GreenhouseEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResu
 	keywords := extractWeightedKeywords(jd)
 	matched, missing, kwScore := weightedStemmedMatch(cv.RawText, keywords)
 
-	// Greenhouse: very broad semantic matching (lenient)
 	semanticScore := tfidfSimilarity(cv.RawText, jd) * 150
 	if semanticScore > 100 {
 		semanticScore = 100
@@ -100,7 +95,6 @@ func (e *GreenhouseEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResu
 	structureScore := calcStructureScore(cv)
 	expScore := calcExpScore(cv.YearsExp, jd)
 
-	// Greenhouse weights narrative quality heavily — a well-structured CV scores higher
 	narrativeBonus := 0.0
 	for _, job := range cv.Experience {
 		if len(job.Description) >= 3 {
@@ -111,7 +105,6 @@ func (e *GreenhouseEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResu
 		narrativeBonus = 20
 	}
 
-	// Greenhouse: semantic(50%) + structure(30%) + experience(20%)
 	total := semanticScore*0.50 + structureScore*0.30 + expScore*0.20 + narrativeBonus
 	if total > 100 {
 		total = 100
@@ -125,13 +118,13 @@ func (e *GreenhouseEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResu
 	}
 	recs = append(recs, buildKeywordRecs(missing, keywords, "semantic")...)
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
-		Confidence:      50,
-		SimulationNote:  "Greenhouse has no automated scoring by design. Our score simulates recruiter scorecard likelihood based on keyword density and structure. Real outcomes depend entirely on human reviewers.",
+		Confidence:      30,
+		SimulationNote:  "Greenhouse has ZERO automated resume scoring — confirmed by Greenhouse documentation and recruiters. Scorecards are filled by human interviewers rating candidates as 'Definitely Not / No / Yes / Strong Yes'. Auto-rejection ONLY happens via knockout questions. This score simulates how searchable your CV is to a Greenhouse recruiter, NOT any automated ranking.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  round(structureScore),
 		ExperienceScore: round(expScore),
@@ -146,14 +139,14 @@ func (e *GreenhouseEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResu
 			{Category: "CV Structure & Clarity", Score: structureScore, MaxScore: 100, Weight: 0.30},
 			{Category: "Experience Depth", Score: expScore, MaxScore: 100, Weight: 0.20},
 		},
-	}
+	})
 }
 
 // ─── Lever ───────────────────────────────────────────────────────────────────
 
 // LeverEngine — Lever (by Employ)
 // Stemming-based matching; abbreviation-blind; no auto-ranking (search-dependent)
-// Confidence: 65% — Lever's search behavior is documented, no auto-scoring algorithm
+// Confidence: 65%
 type LeverEngine struct{}
 
 func (e *LeverEngine) Name() string   { return "Lever" }
@@ -161,10 +154,8 @@ func (e *LeverEngine) Vendor() string { return "Employ" }
 
 func (e *LeverEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 	keywords := extractWeightedKeywords(jd)
-	// Lever: stemming-based, abbreviation-blind
 	matched, missing, kwScore := weightedStemmedMatch(cv.RawText, keywords)
 
-	// Abbreviation penalty unique to Lever
 	abbrevWarnings := checkAbbreviations(cv.RawText, jd)
 	abbrevPenalty := float64(len(abbrevWarnings)) * 3.5
 	kwScore = kwScore - abbrevPenalty
@@ -175,8 +166,6 @@ func (e *LeverEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 	titleScore := calcTitleScore(cv, jd)
 	expScore := calcExpScore(cv.YearsExp, jd)
 
-	// Lever: keyword(55%) + title(30%) + exp(15%)
-	// Lower than Taleo but higher than semantic platforms
 	total := kwScore*0.55 + titleScore*0.30 + expScore*0.15
 	if total > 100 {
 		total = 100
@@ -189,13 +178,13 @@ func (e *LeverEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 		recs = append(recs, fmt.Sprintf("Detected abbreviations that Lever may miss: %s", strings.Join(abbrevWarnings, ", ")))
 	}
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
 		Grade:           models.Grade(total),
-		Confidence:      65,
-		SimulationNote:  "Lever has no auto-ranking; scores depend on recruiter search queries. We simulate search relevance based on stemmed keyword density.",
+		Confidence:      55,
+		SimulationNote:  "Lever is a CRM-style ATS with no auto-scoring. Word stemming is officially confirmed (manage = managing = management). Abbreviation blindness is confirmed (SEO ≠ Search Engine Optimization). Boolean + fuzzy search supported. Score reflects how likely a recruiter keyword search would surface your CV.",
 		KeywordScore:    round(kwScore),
 		StructureScore:  75,
 		ExperienceScore: round(expScore),
@@ -210,21 +199,20 @@ func (e *LeverEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
 			{Category: "Title Alignment", Score: titleScore, MaxScore: 100, Weight: 0.30},
 			{Category: "Experience Years", Score: expScore, MaxScore: 100, Weight: 0.15},
 		},
-	}
+	})
 }
 
 // ─── SuccessFactors ──────────────────────────────────────────────────────────
 
 // SuccessFactorsEngine — SAP SuccessFactors + Joule AI + Textkernel
 // Skills taxonomy normalization; Joule AI infers skills from descriptions
-// Confidence: 68% — Textkernel taxonomy is partially known; Joule AI internals are not
+// Confidence: 68%
 type SuccessFactorsEngine struct{}
 
 func (e *SuccessFactorsEngine) Name() string   { return "SuccessFactors" }
 func (e *SuccessFactorsEngine) Vendor() string { return "SAP" }
 
 func (e *SuccessFactorsEngine) Analyze(cv models.ParsedCV, jd string) models.ATSResult {
-	// Normalize synonyms in both CV and JD before matching
 	normalizedCV := normalizeTaxonomy(cv.RawText)
 	normalizedJD := normalizeTaxonomy(jd)
 
@@ -234,13 +222,11 @@ func (e *SuccessFactorsEngine) Analyze(cv models.ParsedCV, jd string) models.ATS
 	expScore := calcExpScore(cv.YearsExp, normalizedJD)
 	eduScore := calcEduScore(cv)
 
-	// Joule AI inferred skills bonus
-	jouleBonus := inferSkillsFromDesc(cv, jd) * 0.3 // up to 30pt contribution
+	jouleBonus := inferSkillsFromDesc(cv, jd) * 0.3
 	if jouleBonus > 25 {
 		jouleBonus = 25
 	}
 
-	// SuccessFactors: skills taxonomy(45%) + experience(30%) + education(15%) + joule bonus(10%)
 	base := kwScore*0.45 + expScore*0.30 + eduScore*0.15
 	total := base + jouleBonus*0.10
 	if total > 100 {
@@ -252,7 +238,7 @@ func (e *SuccessFactorsEngine) Analyze(cv models.ParsedCV, jd string) models.ATS
 	recs = append(recs, "Include a dedicated Technical Skills section; Joule AI specifically parses it for taxonomy matching")
 	recs = append(recs, buildKeywordRecs(missing, keywords, "taxonomy-normalized")...)
 
-	return models.ATSResult{
+	return withInterval(models.ATSResult{
 		Platform:        e.Name(),
 		Vendor:          e.Vendor(),
 		Score:           round(total),
@@ -274,10 +260,10 @@ func (e *SuccessFactorsEngine) Analyze(cv models.ParsedCV, jd string) models.ATS
 			{Category: "Education", Score: eduScore, MaxScore: 100, Weight: 0.15},
 			{Category: "Joule AI Skill Inference", Score: jouleBonus * 10, MaxScore: 100, Weight: 0.10},
 		},
-	}
+	})
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Shared helpers ──────────────────────────────────────────────────────────
 
 func calcStructureScore(cv models.ParsedCV) float64 {
 	score := 0.0
@@ -296,7 +282,6 @@ func calcStructureScore(cv models.ParsedCV) float64 {
 	if len(cv.Projects) > 0 {
 		score += 10
 	}
-	// Reward quantified achievements
 	for _, job := range cv.Experience {
 		for _, desc := range job.Description {
 			if strings.Contains(desc, "%") || strings.ContainsAny(desc, "0123456789") {
@@ -309,13 +294,6 @@ func calcStructureScore(cv models.ParsedCV) float64 {
 		score = 100
 	}
 	return score
-}
-
-func max1(f float64) float64 {
-	if f < 1 {
-		return 1
-	}
-	return f
 }
 
 func checkAbbreviations(cvText, jd string) []string {
@@ -338,8 +316,8 @@ func checkAbbreviations(cvText, jd string) []string {
 func normalizeTaxonomy(text string) string {
 	synonyms := map[string]string{
 		"python3": "python", "py": "python",
-		"js":      "javascript", "nodejs": "node.js",
-		"ts":      "typescript",
+		"js":       "javascript", "nodejs": "node.js",
+		"ts":       "typescript",
 		"postgres": "postgresql", "pg": "postgresql",
 		"k8s":    "kubernetes", "kube": "kubernetes",
 		"ml":     "machine learning",

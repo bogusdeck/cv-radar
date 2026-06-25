@@ -55,7 +55,9 @@ type AnalysisResponse struct {
 type ATSResult struct {
 	Platform        string           `json:"platform"`
 	Vendor          string           `json:"vendor"`
-	Score           float64          `json:"score"`           // 0–100
+	Score           float64          `json:"score"`           // 0–100 estimated score
+	ScoreLow        float64          `json:"score_low"`       // lower bound of confidence interval
+	ScoreHigh       float64          `json:"score_high"`      // upper bound of confidence interval
 	Grade           string           `json:"grade"`           // A, B, C, D, F
 	Confidence      float64          `json:"confidence"`      // 0–100: how well we can simulate this platform
 	SimulationNote  string           `json:"simulation_note"` // human-readable accuracy caveat
