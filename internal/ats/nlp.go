@@ -4,16 +4,41 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 // shared NLP helpers used across all ATS engines
 
 func toLower(s string) string { return strings.ToLower(s) }
 
+// cleanWord strips leading/trailing punctuation but keeps internal +, #, ., -
+func cleanWord(word string) string {
+	// Trim leading non-alphanumeric (but keep + # . - if they are internal? We'll just trim any non-alnum at start/end)
+	// We'll define a set of allowed internal chars: + # . -
+	// For simplicity, we'll strip any char that is not a letter or digit from the start and end.
+	start := 0
+	end := len(word)
+	for start < end && !unicode.IsLetter(rune(word[start])) && !unicode.IsNumber(rune(word[start])) {
+		start++
+	}
+	for end > start && !(!unicode.IsLetter(rune(word[end-1])) && !unicode.IsNumber(rune(word[end-1]))) {
+		end--
+	}
+	return word[start:end]
+}
+
 // tokenize splits text into lowercase words, stripping punctuation
 func tokenize(text string) []string {
-	re := regexp.MustCompile(`[a-zA-Z0-9#+.\-]+`)
-	return re.FindAllString(strings.ToLower(text), -1)
+	re := regexp.MustCompile(`[a-zA-Z0-9#+.\\-]+`)
+	raw := re.FindAllString(strings.ToLower(text), -1)
+	var cleaned []string
+	for _, w := range raw {
+		cw := cleanWord(w)
+		if cw != "" {
+			cleaned = append(cleaned, cw)
+		}
+	}
+	return cleaned
 }
 
 // tokenSet returns a map of unique tokens
@@ -91,42 +116,62 @@ func extractWeightedKeywords(jd string) []WeightedKeyword {
 		pos += len(l) + 1
 	}
 
-	currentWeight := 0.9 // default: assume most things are required
+	// Find all section boundaries first
+	var boundaries []int
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if sectionBoundaryRe.MatchString(trimmed) {
-			lineL := strings.ToLower(trimmed)
-			newW := 0.9
-			for _, h := range niceHeaders {
-				if strings.Contains(lineL, h) {
-					newW = 0.45
-					break
-				}
-			}
-			for _, h := range requiredHeaders {
-				if strings.Contains(lineL, h) {
-					newW = 1.0
-					break
-				}
-			}
-			if i > 0 {
-				sections = append(sections, section{lineStarts[i], len(jd), newW})
-			}
-			currentWeight = newW
+			boundaries = append(boundaries, i)
 		}
 	}
-	_ = currentWeight
-	_ = sections
+	// Add end boundary
+	boundaries = append(boundaries, len(lines))
+
+	// Create sections with proper start/end
+	for i := 0; i < len(boundaries)-1; i++ {
+		startLine := boundaries[i]
+		endLine := boundaries[i+1]
+		if startLine >= len(lines) {
+			continue
+		}
+		
+		// Determine weight for this section
+		lineL := strings.ToLower(strings.TrimSpace(lines[startLine]))
+		w := 0.9 // default weight
+		for _, h := range niceHeaders {
+			if strings.Contains(lineL, h) {
+				w = 0.45
+				break
+			}
+		}
+		for _, h := range requiredHeaders {
+			if strings.Contains(lineL, h) {
+				w = 1.0
+				break
+			}
+		}
+		
+		sections = append(sections, section{
+			start: lineStarts[startLine],
+			end:   func() int {
+				if endLine < len(lines) {
+					return lineStarts[endLine]
+				}
+				return len(jd)
+			}(),
+			w:     w,
+		})
+	}
 
 	// Helper: get weight for a position in the JD
 	getWeight := func(idx int) float64 {
-		w := 0.9
+		// Find the section that contains this index
 		for _, s := range sections {
-			if idx >= s.start {
-				w = s.w
+			if idx >= s.start && idx < s.end {
+				return s.w
 			}
 		}
-		return w
+		return 0.9 // default if not found
 	}
 
 	found := map[string]WeightedKeyword{}
@@ -323,11 +368,7 @@ func scoreToPercent(ratio float64) float64 {
 	return ratio * 100
 }
 
-// sectionAwareSkillsOverlap weights skills found in the Skills section higher
-func sectionAwareSkillsOverlap(cv interface{ GetSkillsInSection() []string; GetAllSkills() []string }, jdText string) float64 {
-	// simplified: use flat list but document the intent
-	return 0
-}
+
 
 func skillsOverlap(cvSkills []string, jdText string) float64 {
 	if len(cvSkills) == 0 {

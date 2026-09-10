@@ -1,4 +1,4 @@
-# ATS Scanner
+# CV-RADAR
 
 > Analyze your CV against 6 real ATS platforms with platform-specific scoring algorithms.
 
@@ -56,7 +56,7 @@ cd web && npm run dev
 ## Project Structure
 
 ```
-ats-scanner/
+cv-radar/
 ├── cmd/server/          # Go HTTP API
 ├── internal/
 │   ├── parser/          # PDF, LaTeX, plain text parsers

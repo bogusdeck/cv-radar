@@ -2,7 +2,8 @@
 'use strict';
 
 import React, { useState, useEffect } from 'react';
-import { render, Box, Text, useInput, useApp, Newline } from 'ink';
+import { render, Box, Text, useInput, useApp, Newline, useStdout } from 'ink';
+import TextInput from 'ink-text-input';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
@@ -139,31 +140,35 @@ function wrap(text: string, maxWidth: number): string[] {
 // ─── Components ──────────────────────────────────────────────────────────────
 
 function Header({ subtitle }: { subtitle?: string }) {
+  const { stdout } = useStdout();
+  const width = stdout.columns || 80;
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text bold color="magenta">{'╔' + '═'.repeat(62) + '╗'}</Text>
+      <Text bold color="magenta">{'╔' + '═'.repeat(width - 2) + '╗'}</Text>
       <Box>
         <Text bold color="magenta">{'║  '}</Text>
-        <Text bold color="white">🎯  ATS SCANNER</Text>
+        <Text bold color="white">🎯  CV-RADAR</Text>
         <Text color="gray">  ·  6-Platform CV Analyzer  ·  React Ink TUI</Text>
-        <Text bold color="magenta">{'  ║'}</Text>
+        <Text bold color="magenta">{' '.repeat(Math.max(0, width - 57)) + '║'}</Text>
       </Box>
       {subtitle && (
         <Box>
           <Text bold color="magenta">{'║  '}</Text>
-          <Text color="cyan">{subtitle.padEnd(59)}</Text>
+          <Text color="cyan">{subtitle.substring(0, width - 7).padEnd(width - 5)}</Text>
           <Text bold color="magenta">{'║'}</Text>
         </Box>
       )}
-      <Text bold color="magenta">{'╚' + '═'.repeat(62) + '╝'}</Text>
+      <Text bold color="magenta">{'╚' + '═'.repeat(width - 2) + '╝'}</Text>
     </Box>
   );
 }
 
 function Divider({ label }: { label?: string }) {
-  if (!label) return <Text color="gray">{'─'.repeat(64)}</Text>;
+  const { stdout } = useStdout();
+  const width = stdout.columns || 80;
+  if (!label) return <Text color="gray">{'─'.repeat(width)}</Text>;
   const padded = `─── ${label} `;
-  return <Text color="gray">{padded + '─'.repeat(Math.max(0, 64 - padded.length))}</Text>;
+  return <Text color="gray">{padded + '─'.repeat(Math.max(0, width - padded.length))}</Text>;
 }
 
 function Spinner({ msg }: { msg: string }) {
@@ -481,9 +486,156 @@ function ErrorScreen({ msg }: { msg: string }) {
   );
 }
 
+
+
+// ─── Prompt Screen ───────────────────────────────────────────────────────────
+
+
+function TextArea({ value, onChange, onSubmit }: { value: string; onChange: (v: string) => void; onSubmit: () => void }) {
+  useInput((input, key) => {
+    if ((key.ctrl && input === 's') || (key.ctrl && input === 'd')) {
+      onSubmit();
+      return;
+    }
+
+    if (key.return) {
+      onChange(value + '\n');
+    } else if (key.backspace || key.delete) {
+      onChange(value.slice(0, -1));
+    } else if (input) {
+      onChange(value + input);
+    }
+  });
+
+  const hasValue = value.length > 0;
+
+  // Split into lines to manage rendering if it gets too huge, 
+  // but allow it to auto-expand up to 15 lines max visually for ease.
+  const { stdout } = useStdout();
+  const maxLines = Math.max(5, (stdout.rows || 24) - 15);
+  const width = (stdout.columns || 80) - 2; // subtract 2 to prevent native terminal wrapping
+
+  const lines = value.split('\n');
+  const displayLines = lines.length > maxLines ? lines.slice(-maxLines) : lines;
+
+  return (
+    <Box flexDirection="column" width={width}>
+      <Text color="blueBright">
+        ╭─ <Text bold>Job Description</Text> {'─'.repeat(Math.max(0, width - 19))}
+      </Text>
+      <Box flexDirection="column" paddingX={2} paddingY={0}>
+        {hasValue ? (
+          displayLines.map((line, i) => (
+            <Text key={i}>
+              {line}
+              {i === displayLines.length - 1 ? <Text color="cyan">{'\u2588'}</Text> : ''}
+            </Text>
+          ))
+        ) : (
+          <Text color="gray" dimColor>
+            Paste your entire Job Description here...
+            <Text color="cyan">{'\u2588'}</Text>
+          </Text>
+        )}
+      </Box>
+      <Text color="blueBright">
+        ╰{'─'.repeat(Math.max(0, width - 23))}
+        <Text color="white" dimColor> [Ctrl+S to analyse] </Text>
+      </Text>
+    </Box>
+  );
+}
+
+function PromptScreen({ onSubmit }: { onSubmit: (cvText: string, jdText: string) => void }) {
+  const { exit } = useApp();
+  const { stdout } = useStdout();
+  const width = (stdout.columns || 80) - 2;
+
+  const [step, setStep] = useState<'cv' | 'jd'>('cv');
+  const [cvPath, setCvPath] = useState('');
+  const [jdText, setJdText] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleCvSubmit = (value: string) => {
+    if (!value.trim()) return;
+    const resolved = path.resolve(value);
+    if (!fs.existsSync(resolved)) {
+      setErrorMsg(`CV file not found: ${resolved}`);
+      return;
+    }
+    setErrorMsg('');
+    setStep('jd');
+  };
+
+  const handleJdSubmit = () => {
+    if (!jdText.trim()) {
+      setErrorMsg('JD text cannot be empty');
+      return;
+    }
+    setErrorMsg('');
+    
+    try {
+      const cvText = fs.readFileSync(path.resolve(cvPath), 'utf-8');
+      onSubmit(cvText, jdText);
+    } catch (e: any) {
+      setErrorMsg(`Error reading CV file: ${e.message}`);
+    }
+  };
+
+  useInput((input, key) => {
+    if (key.escape) exit();
+  });
+
+  return (
+    <Box flexDirection="column">
+      <Header />
+      <Box marginTop={1} flexDirection="column">
+        {step === 'cv' && (
+          <Box flexDirection="column" width={width}>
+            <Text color="magenta">
+              ╭─ <Text bold>CV File Path</Text> {'─'.repeat(Math.max(0, width - 16))}
+            </Text>
+            <Box paddingX={2}>
+              <Text color="cyan" bold>{'❯ '}</Text>
+              <TextInput value={cvPath} onChange={setCvPath} onSubmit={handleCvSubmit} />
+            </Box>
+            <Text color="magenta">╰{'─'.repeat(Math.max(0, width - 2))}</Text>
+          </Box>
+        )}
+        {step === 'jd' && (
+          <Box flexDirection="column">
+            <Box flexDirection="column" width={width}>
+              <Text color="green">
+                ╭─ <Text bold>CV File Path</Text> {'─'.repeat(Math.max(0, width - 16))}
+              </Text>
+              <Box paddingX={2}>
+                <Text color="green" bold>✓ </Text>
+                <Text color="white">{cvPath}</Text>
+              </Box>
+              <Text color="green">╰{'─'.repeat(Math.max(0, width - 2))}</Text>
+            </Box>
+            <Box marginTop={1} flexDirection="column">
+              <TextArea value={jdText} onChange={setJdText} onSubmit={handleJdSubmit} />
+            </Box>
+          </Box>
+        )}
+        {errorMsg && (
+          <Box marginTop={1}>
+            <Text color="redBright">⚠ {errorMsg}</Text>
+          </Box>
+        )}
+      </Box>
+      <Newline />
+      <Text color="gray">Press <Text color="white" bold>Esc</Text> to quit</Text>
+    </Box>
+  );
+}
+
 // ─── Main App ────────────────────────────────────────────────────────────────
 
+
 type AppState =
+  | { stage: 'prompt' }
   | { stage: 'loading'; msg: string }
   | { stage: 'error'; msg: string }
   | { stage: 'overview'; data: AnalysisResponse }
@@ -492,9 +644,27 @@ type AppState =
 function App() {
   const [state, setState] = useState<AppState>({ stage: 'loading', msg: 'Starting up…' });
 
+  const runAnalysis = async (cvText: string, jdText: string) => {
+    setState({ stage: 'loading', msg: 'Analyzing against 6 ATS platforms…' });
+    try {
+      const result: AnalysisResponse = await apiPost('/api/analyze', {
+        cv_text: cvText,
+        jd_text: jdText,
+      });
+      setState({ stage: 'overview', data: result });
+    } catch (e: any) {
+      setState({ stage: 'error', msg: e.message });
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const args = process.argv.slice(2);
+      if (args.length === 0) {
+        setState({ stage: 'prompt' });
+        return;
+      }
+      
       let cvText = '';
       let jdText = '';
 
@@ -514,7 +684,6 @@ function App() {
 
         cvText = fs.readFileSync(cvPath, 'utf-8');
         jdText = fs.readFileSync(jdPath, 'utf-8');
-        setState({ stage: 'loading', msg: `Parsing ${path.basename(args[0])} against ${path.basename(args[1])}…` });
       }
       // Mode 2: cat cv.txt | ats-tui --stdin "job description..."
       else if (args[0] === '--stdin' && args[1]) {
@@ -533,44 +702,20 @@ function App() {
         }
         cvText = fs.readFileSync(cvPath, 'utf-8');
         jdText = args.slice(jdIdx + 1).join(' ');
-        setState({ stage: 'loading', msg: `Analyzing ${path.basename(args[cvIdx + 1])}…` });
       }
       else {
         setState({
           stage: 'error',
-          msg: [
-            'Usage:',
-            '',
-            '  # Analyze files:',
-            '  ats-tui <cv-file> <jd-file>',
-            '',
-            '  # Pipe CV, pass JD as arg:',
-            '  cat cv.txt | ats-tui --stdin "job description text"',
-            '',
-            '  # CV file + inline JD:',
-            '  ats-tui --cv cv.tex --jd "job description text"',
-            '',
-            '  # Set custom API server:',
-            '  ATS_API=http://myserver:8080 ats-tui cv.txt jd.txt',
-          ].join('\n'),
+          msg: "Invalid arguments. Try running without arguments for interactive prompt."
         });
         return;
       }
 
-      setState({ stage: 'loading', msg: 'Analyzing against 6 ATS platforms…' });
-
-      try {
-        const result: AnalysisResponse = await apiPost('/api/analyze', {
-          cv_text: cvText,
-          jd_text: jdText,
-        });
-        setState({ stage: 'overview', data: result });
-      } catch (e: any) {
-        setState({ stage: 'error', msg: e.message });
-      }
+      runAnalysis(cvText, jdText);
     })();
   }, []);
 
+  if (state.stage === 'prompt') return <PromptScreen onSubmit={runAnalysis} />;
   if (state.stage === 'loading') return <LoadingScreen msg={state.msg} />;
   if (state.stage === 'error') return <ErrorScreen msg={state.msg} />;
 
@@ -643,7 +788,7 @@ function printHelp() {
 function printStaticReport(data: AnalysisResponse) {
   const cv = data.parsed_cv;
   console.log(`\n\x1b[35m╔${'═'.repeat(62)}╗`);
-  console.log(`║  \x1b[1m\x1b[37m🎯  ATS SCANNER\x1b[0m\x1b[35m  ·  6-Platform CV Analyzer (Static Mode)    ║`);
+  console.log(`║  \x1b[1m\x1b[37m🎯  CV-RADAR\x1b[0m\x1b[35m  ·  6-Platform CV Analyzer (Static Mode)    ║`);
   console.log(`╚${'═'.repeat(62)}╝\x1b[0m`);
 
   console.log(`\x1b[1mCandidate:\x1b[0m ${cv.name || 'Unknown'}  ·  \x1b[36m${cv.years_exp}yr exp\x1b[0m  ·  \x1b[36m${cv.skills.length} skills\x1b[0m`);
@@ -752,7 +897,20 @@ async function runStaticCLI() {
 const isInteractive = process.stdin.isTTY && typeof process.stdin.setRawMode === 'function';
 
 if (isInteractive) {
-  render(<App />, { patchConsole: false });
+  // Enter alternate screen buffer for a "proper" full-screen TUI feel
+  process.stdout.write('\x1b[?1049h');
+  
+  // Ensure we exit the alternate screen on exit or Ctrl+C
+  const exitAltScreen = () => {
+    process.stdout.write('\x1b[?1049l');
+    process.exit(0);
+  };
+  process.on('SIGINT', exitAltScreen);
+  process.on('SIGTERM', exitAltScreen);
+  process.on('exit', () => process.stdout.write('\x1b[?1049l'));
+
+  const { waitUntilExit } = render(<App />, { patchConsole: false });
+  waitUntilExit().then(exitAltScreen);
 } else {
   runStaticCLI();
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 
@@ -39,7 +39,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	fmt.Printf("🚀 ATS Scanner API running on http://localhost:%s\n", port)
+	fmt.Printf("🚀 CV-RADAR API running on http://localhost:%s\n", port)
 	r.Run(":" + port)
 }
 
@@ -76,7 +76,8 @@ func handleAnalyze(c *gin.Context) {
 
 	// Auto-detect and strip LaTeX if needed
 	cvText := req.CVText
-	if strings.Contains(cvText, `\documentclass`) || strings.Contains(cvText, `\begin{document}`) {
+	latexDocClassRegex := regexp.MustCompile(`(?m)^\s*\\documentclass`)
+	if latexDocClassRegex.MatchString(cvText) {
 		cvText = parser.StripLatex(cvText)
 	}
 	cv := parser.ParseText(cvText)
@@ -116,6 +117,10 @@ func handleParse(c *gin.Context) {
 
 // POST /api/upload — upload a PDF or .tex file, returns extracted text
 func handleUpload(c *gin.Context) {
+	// Limit upload size to 10 MB
+	const maxUploadSize = 10 << 20 // 10 MB
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxUploadSize)
+
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "file upload failed: " + err.Error()})

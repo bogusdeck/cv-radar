@@ -75,10 +75,36 @@ func extractPhone(text string) string {
 }
 
 func extractLocation(text string) string {
-	// Common Indian city patterns + general location
-	re := regexp.MustCompile(`(?i)(Delhi|Mumbai|Bangalore|Bengaluru|Hyderabad|Chennai|Pune|Noida|Gurugram|Kolkata|Remote)[,\s]*(?:India)?`)
-	m := re.FindString(text)
-	return strings.TrimSpace(m)
+	// Look for location patterns at the beginning of lines or after common prefixes
+	// Split by newline and check each line
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		// Common location patterns
+		patterns := []string{
+			// City, State (US) - match full state names
+			`(?i)^([a-zA-Z\s]+,\s*(?:Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming|District\s+of\s+Columbia))\s*$`,
+			// City, State (US) - two letter codes
+			`(?i)^([a-zA-Z\s]+,\s*[A-Z]{2})\s*$`,
+			// City, Country
+			`(?i)^([a-zA-Z\s]+,\s*(?:USA|India|UK|Canada|Australia|Germany|France|Singapore))\s*$`,
+			// Remote indicators
+			`(?i)^(Remote|Work\s+from\s+Home|WFH|Telecommute)\s*$`,
+		}
+		
+		for _, pattern := range patterns {
+			re := regexp.MustCompile(pattern)
+			if m := re.FindString(line); m != "" {
+				return strings.TrimSpace(m)
+			}
+		}
+	}
+	
+	return ""
 }
 
 func extractLinks(text string) []string {
@@ -170,7 +196,7 @@ func extractExperience(text string) []models.Job {
 	inExp := false
 	var current *models.Job
 
-	dateRe := regexp.MustCompile(`(?i)(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})\s*[-–—]\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4}|present|now|current)`)
+	dateRe := regexp.MustCompile(`(?i)((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\\d{1,2}|\\d{4})\\s*[-–—/to]+\\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\\d{1,2}|\\d{4}|present|now|current))`)
 
 	for _, line := range lines {
 		if sectionHeaders.MatchString(line) {

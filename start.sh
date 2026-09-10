@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start both the Go API server and the React web frontend
 
-echo "🚀 Starting ATS Scanner..."
+echo "🚀 Starting CV-RADAR..."
 
 # Start Go API server in background
 echo "📡 Starting Go API on :8080"
