@@ -44,11 +44,11 @@ const Noise = (function() {
     };
 })();
 
-const pixelScale = 3; 
+const pixelScale = 6; 
 const baseShimmerSpeed = 0.0007; 
 const noiseSpeed = 0.0005;       
-const noiseScaleX = 0.003;       
-const noiseScaleY = 0.015;       
+const noiseScaleX = 0.006;       
+const noiseScaleY = 0.030;       
 
 const bayerMatrix8x8 = [
     [  0, 32,  8, 40,  2, 34, 10, 42 ],
@@ -128,7 +128,7 @@ export default function InputDitherBackground() {
               const normalizedNoise = (rawNoise + 1) * 0.5;
               const waveDensity = smoothstep(0.40, 0.70, normalizedNoise);
 
-              const shimmerWave = (Math.sin(x * 0.015 - shimmerSweep) + 1) * 0.5;
+              const shimmerWave = (Math.sin(x * 0.030 - shimmerSweep) + 1) * 0.5;
               const baseDensity = 0.05 + (shimmerWave * 0.10);
               const totalDensity = baseDensity + (waveDensity * 0.65);
 
