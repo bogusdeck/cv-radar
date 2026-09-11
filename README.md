@@ -1,9 +1,14 @@
-<p align="center">
-  <img src="web/public/assets/images/logo.png" alt="cv-radar" width="120">
-</p>
+<p align="center"><pre>
+  ██████╗██╗   ██╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗ 
+ ██╔════╝██║   ██║      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗
+ ██║     ██║   ██║█████╗██████╔╝███████║██║  ██║███████║██████╔╝
+ ██║     ╚██╗ ██╔╝╚════╝██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗
+ ╚██████╗ ╚████╔╝       ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║
+  ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+</pre></p>
 
-<h1 align="center">CV-RADAR</h1>
 <p align="center"><strong>ATS Resume Scanner & AI CV Optimizer</strong></p>
+
 
 <p align="center">
   Score your CV against a Job Description. Find missing keywords. Auto-rewrite it for Workday, Taleo, Greenhouse, or iCIMS — headlessly, right inside your AI coding CLI.
