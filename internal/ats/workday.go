@@ -108,8 +108,10 @@ func calcTitleScore(cv models.ParsedCV, jd string) float64 {
 	jdLower := strings.ToLower(jd)
 	titleKeywords := []string{"engineer", "developer", "backend", "frontend", "full stack", "sde", "senior", "lead", "architect", "analyst", "scientist"}
 	hits := 0
+	jdKeywords := 0
 	for _, kw := range titleKeywords {
 		if strings.Contains(jdLower, kw) {
+			jdKeywords++
 			for _, job := range cv.Experience {
 				if strings.Contains(strings.ToLower(job.Title), kw) {
 					hits++
@@ -118,10 +120,10 @@ func calcTitleScore(cv models.ParsedCV, jd string) float64 {
 			}
 		}
 	}
-	if len(titleKeywords) == 0 {
+	if jdKeywords == 0 {
 		return 50
 	}
-	return scoreToPercent(float64(hits) / float64(len(titleKeywords)))
+	return scoreToPercent(float64(hits) / float64(jdKeywords))
 }
 
 func calcExpScore(yearsExp float64, jd string) float64 {

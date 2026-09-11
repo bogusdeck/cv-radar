@@ -195,8 +195,9 @@ func extractExperience(text string) []models.Job {
 
 	inExp := false
 	var current *models.Job
+	prevLine := ""
 
-	dateRe := regexp.MustCompile(`(?i)((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\\d{1,2}|\\d{4})\\s*[-–—/to]+\\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\\d{1,2}|\\d{4}|present|now|current))`)
+	dateRe := regexp.MustCompile(`(?i)((?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+)?\d{2,4}\s*[-–—/to]+\s*(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+)?(?:\d{2,4}|present|now|current))`)
 
 	for _, line := range lines {
 		if sectionHeaders.MatchString(line) {
@@ -217,16 +218,19 @@ func extractExperience(text string) []models.Job {
 			continue
 		}
 
-		if dateRe.MatchString(line) {
+		if dateRe.MatchString(line) && len(line) < 35 {
 			if current != nil {
 				jobs = append(jobs, *current)
 			}
 			current = &models.Job{Duration: dateRe.FindString(line)}
-			// Title is often on the same line or previous line
+			
 			cleaned := strings.TrimSpace(dateRe.ReplaceAllString(line, ""))
 			if cleaned != "" {
 				current.Title = cleaned
+			} else if prevLine != "" && !strings.HasPrefix(prevLine, "•") && !strings.HasPrefix(prevLine, "-") {
+				current.Title = prevLine
 			}
+			prevLine = line
 			continue
 		}
 
@@ -240,6 +244,7 @@ func extractExperience(text string) []models.Job {
 				current.Description = append(current.Description, desc)
 			}
 		}
+		prevLine = line
 	}
 
 	if current != nil {

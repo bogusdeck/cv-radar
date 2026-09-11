@@ -34,10 +34,12 @@ func main() {
 	r.POST("/api/analyze", handleAnalyze)
 	r.POST("/api/parse", handleParse)
 	r.POST("/api/upload", handleUpload)
+	r.POST("/api/fix-resume/generate", handleFixResumeGenerate)
+	r.POST("/api/fix-resume/compile", handleFixResumeCompile)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8085"
 	}
 	fmt.Printf("🚀 CV-RADAR API running on http://localhost:%s\n", port)
 	r.Run(":" + port)
@@ -76,7 +78,7 @@ func handleAnalyze(c *gin.Context) {
 
 	// Auto-detect and strip LaTeX if needed
 	cvText := req.CVText
-	latexDocClassRegex := regexp.MustCompile(`(?m)^\s*\\documentclass`)
+	latexDocClassRegex := regexp.MustCompile(`(?m)^\s*\\(documentclass|begin\{document\})`)
 	if latexDocClassRegex.MatchString(cvText) {
 		cvText = parser.StripLatex(cvText)
 	}

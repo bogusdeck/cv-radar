@@ -1,0 +1,112 @@
+Certainly! Below is an example of a simple LaTeX document for a resume. This template uses the `moderncv` class, which provides a clean and modern look.
+
+```latex
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% ModernCV themes
+\moderncvstyle{banking} % Choose the style (classic, banking, default, etc.)
+\moderncvcolor{blue} % Choose the color
+
+% Character encoding
+\usepackage[utf8]{inputenc}
+
+% Adjust the page margins
+\usepackage[scale=0.75]{geometry}
+
+% Font Awesome for icons
+\usepackage{fontawesome5}
+\usepackage{hyperref}
+
+% Personal data
+\name{John}{Doe}
+\title{Software Developer} % Optional
+\address{123 Elm Street}{City, State 12345}{Country} % Optional
+\phone[mobile]{+1~(123)~456~7890}
+\phone[fixed]{+2~(098)~765~4321}
+\email{johndoe@example.com}
+\homepage{www.johndoe.com} % Optional
+\social[linkedin]{john.doe} % Optional
+\social[github]{johndoe} % Optional
+
+% Custom commands for dates and sections
+\newcommand*{\cvdate}[1]{\section*{\textsc{#1}}}
+\newcommand*{\cvevent}[3]{
+    \vspace{0.5em}
+    \begin{tabular}{rl}
+        \small #2 & \small #1 \\
+    \end{tabular}\par
+}
+
+% Main document
+\begin{document}
+
+% Print the name and title with a photo (optional)
+%\makecvheader
+
+% Print the profile picture (optional, but recommended for modern styles)
+%\makecvfooter{}
+{\footnotesize Last updated: \today}
+{}
+
+% Personal statement
+\cvdate{Summary}
+\smallskip
+\noindent I am an experienced software developer skilled in a variety of programming languages and technologies. With over 5 years of experience, I have built applications for both web and mobile platforms.
+
+% Work experience
+\cvdate{Professional Experience}
+
+\cvevent{Senior Software Developer}{ABC Company, City}{}{}
+\begin{itemize}
+    \item Developed and maintained a large-scale web application using Python and Django.
+    \item Collaborated with cross-functional teams to design and implement new features.
+    \item Participated in code reviews and helped mentor junior developers.
+\end{itemize}
+
+\cvevent{Junior Software Developer}{XYZ Company, City}{}{}
+\begin{itemize}
+    \item Contributed to the development of a mobile app using Swift for iOS.
+    \item Worked on integrating third-party APIs to improve user experience.
+    \item Assisted in testing and debugging processes.
+\end{itemize}
+
+% Education
+\cvdate{Education}
+
+\cvevent{Bachelor of Science in Computer Science}{University Name, City}{}{}
+\begin{itemize}
+    \item Graduated with honors in 2015.
+    \item Completed coursework in algorithms, data structures, and software engineering.
+\end{itemize}
+
+% Skills
+\cvdate{Skills}
+
+\smallskip
+\begin{tabular}{ll}
+    Programming Languages: & Python, Swift, Java \\
+    Technologies: & Django, React.js, Node.js \\
+    Tools: & Git, Docker, Jenkins \\
+\end{tabular}
+
+% Interests (Optional)
+%\cvdate{Interests}
+%\noindent Traveling, hiking, reading about technology.
+
+% Language skills (Optional)
+%\cvdate{Language Skills}
+%\smallskip
+%\begin{tabular}{ll}
+%    English: & Fluent \\
+%    Spanish: & Intermediate \\
+%\end{tabular}
+
+\end{document}
+```
+
+To compile this document, you would need a LaTeX distribution like `TeX Live` or `MiKTeX`. You can use an online editor such as Overleaf if you don't have a local installation. Here are the steps to compile it:
+
+1. Copy and paste the code into a `.tex` file.
+2. Compile the document using a LaTeX editor (e.g., Overleaf, TeXShop, etc.).
+
+This template provides a basic structure for your resume and can be customized further based on your specific needs and preferences.

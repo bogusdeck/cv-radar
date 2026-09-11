@@ -1,0 +1,64 @@
+Tanish Vashisth 9911584966 | tanishvashisth@gmail.com | github.com/bogusdeck | leetcode.com/bogusdeck |
+bogusdeck.github.io | Delhi, India
+Summary Backend-focused Software Development Engineer with 2+ years of experience in Python, automation, APIs,
+cloud infrastructure, and scalable production systems. Experienced in building automation workflows for applications and
+infrastructure using Django, FastAPI, Celery, Docker, AWS, DigitalOcean, Git, and SQL. Hands-on with monitoring and
+observability using Kibana, troubleshooting production systems, and optimizing high-performance APIs. Experience
+integrating Generative AI and LLM APIs, including OpenAI, RAG, and agentic AI workflows. Strong problem-solving
+skills with cross-functional delivery experience.
+Experience
+Software Development Engineer 1 (SDE-1)
+Dec 2024 – June 2026
+Instahyre
+Noida, Delhi
+• Owned the Jobs module end-to-end; built Magic Boost, an automated recommendation engine for candidate-pool expansion,
+and Market Signal, an LLM-powered feature using the OpenAI API to generate JD-aware recruiter insights and improve
+matching workflows.
+• Scaled critical Python APIs from 750ms to 120ms average latency by replacing Django ORM with optimized raw SQL,
+reducing overall API response times by 30% and improving application performance.
+• Built an automated reporting pipeline aggregating OpenAI-generated recommendation outputs per recruiter JD into weekly
+management reports for system performance analysis and troubleshooting.
+• Shipped Fine-Tune, a production Generative AI feature using the OpenAI API to refine candidate searches through AI-driven
+signals, improving candidate relevancy by 70% and candidate pool size by 40%.
+Back End Developer
+May 2024 – Nov 2024
+Xtage
+Gurugram
+• Solely built the backend for Pearch, a Shopify collection-sorting plugin with 1,000+ installs, including an ML-assisted ranking
+engine combining rule-based signals with configurable parameters.
+• Automated asynchronous application operations with Celery queues; optimized APIs to handle 200–300 customer visits/hour
+and integrated Shopify subscription billing APIs for recurring pricing workflows.
+• Deployed and maintained application infrastructure on AWS and DigitalOcean using Docker and Nginx; collaborated with
+frontend, UX/UI, and PM teams and delivered API documentation for cross-functional integration.
+Python Intern
+Feb 2023 – Apr 2023
+Callisto Infotech
+Remote
+• Built full-stack web applications using the MERN stack and developed REST API endpoints with Django REST Framework,
+JWT authentication, ORM models, and Tailwind CSS components.
+Projects
+Fasfas | Django, AngularJS, React Native, Celery, ElasticSearch | fasfas.in
+• Built a full-stack fashion e-commerce platform with a Django REST backend, AngularJS web frontend, and React Native
+mobile app; implemented AI-powered recommendations, Elasticsearch product discovery, and Celery-based asynchronous
+order processing and notifications.
+mcp-phabricator | TypeScript, MCP, Phabricator API | GitHub
+• Built an open-source MCP server enabling AI agents to review code diffs with stack-aware prompts, generate task summaries,
+and automate Phabricator workflows; published on Smithery and installable via Claude Code.
+Rune | Go, Ollama, RAG | GitHub
+• Built a Go CLI extending local LLM capabilities through Ollama with a RAG pipeline for semantic search, persistent
+conversation context, and offline AI-assisted querying.
+Technical Skills
+Languages: Python, JavaScript, TypeScript, SQL, C++, Go Frameworks & Tools: Django, FastAPI, Flask, Node.js,
+React.js, Next.js, AngularJS, Celery, ElasticSearch, Tailwind CSS, REST APIs AI/ML: Generative AI, Agentic AI, LLM
+Integration, Prompt Engineering, RAG, Ollama, OpenAI API, Gemini SDK, Vector Search Infrastructure: AWS, Docker,
+Nginx, Linux, Kibana, PostgreSQL, MySQL, Redis, DigitalOcean, Cloud Infrastructure Dev Tools: Git, Postman, Neovim,
+Phabricator, Arcanist Libraries: pandas, NumPy, Matplotlib
+Education
+Bachelor of Technology in Information Technology
+2020 – 2024
+Krishna Engineering College (AKTU)
+• CGPA: 7.54
+XII (CBSE)
+2019
+Navyug School, Laxmi Bai Nagar
+• CGPA: 8.7

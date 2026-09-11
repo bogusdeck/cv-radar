@@ -5,7 +5,7 @@ echo "🚀 Starting CV-RADAR API and Web UI..."
 
 # Start Go API server in background
 echo "📡 Starting Go API on :8080"
-go run ./cmd/server/main.go &
+go run ./cmd/server &
 GO_PID=$!
 
 # Wait for server to be ready (max 10 seconds)
