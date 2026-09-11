@@ -1,4 +1,36 @@
-node_modules/
-dist/
+# Binaries
+cv-tui
+server_bin
+*.exe
+
+# Build output
+web/dist/
+outputs/
+output/
+
+# Go test artifacts
+*.test
+
+# LaTeX artifacts
+*.aux
 *.log
-ats-server
+*.out
+*.synctex.gz
+
+# Test / scratch files
+cv_test.txt
+jd_test.txt
+optimized_cv.md
+
+# Environment
+.env
+*.env.local
+
+# macOS
+.DS_Store
+
+# Node
+web/node_modules/
+
+# Old React TUI (replaced by Go Bubbletea TUI)
+tui/

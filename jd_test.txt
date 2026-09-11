@@ -1,6 +1,0 @@
-Backend Software Engineer
-Requirements:
-- 3+ years of experience in Python, Django, FastAPI
-- Experience with Celery, AWS, Docker, Kubernetes
-- SQL and PostgreSQL database experience
-- Experience with AI, LLM, OpenAI API
