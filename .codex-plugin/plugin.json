@@ -1,0 +1,12 @@
+{
+  "name": "cv-optimizer",
+  "version": "1.0.0",
+  "description": "ATS resume optimizer: score your CV against a job description and auto-rewrite it for Workday, Taleo, Greenhouse, or iCIMS.",
+  "author": {
+    "name": "Tanish Vashisth",
+    "url": "https://github.com/bogusdeck"
+  },
+  "skills": [
+    "./.agents/skills/cv-optimizer"
+  ]
+}
