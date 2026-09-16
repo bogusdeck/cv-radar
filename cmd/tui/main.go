@@ -18,20 +18,22 @@ import (
 )
 
 type model struct {
-	state      int // 0:welcome/input form, 1:select ATS, 2:scanning, 3:result, 4:optimizing, 5:done
-	focusIndex int // 0: JD input, 1: CV input, 2: Let's Go button
-	inputs     []textinput.Model
-	jdText     string
-	cvText     string
-	platform   string
-	platforms  []string
-	cursor     int
-	result     *models.ATSResult
-	err        error
-	width      int
-	height     int
-	spinner    spinner.Model
-	detectedAI string
+	state        int // 0:welcome/input form, 1:select ATS, 2:scanning, 3:result, 4:optimizing, 5:done
+	focusIndex   int // 0: JD input, 1: CV input, 2: AI Engine selector, 3: Let's Go button
+	inputs       []textinput.Model
+	jdText       string
+	cvText       string
+	platform     string
+	platforms    []string
+	cursor       int
+	result       *models.ATSResult
+	err          error
+	width        int
+	height       int
+	spinner      spinner.Model
+	availableAIs []string
+	aiCursor     int
+	selectedAI   string
 }
 
 type optimizeResult struct {
@@ -55,16 +57,26 @@ func initialModel() model {
 	inputs[1].CharLimit = 500
 	inputs[1].Width = 52
 
-	aiTool := detectAiTool()
+	autoAI := detectAiTool()
+	availableAIs := []string{"opencode", "claude", "agy", "codex"}
+	aiCursor := 0
+	for i, tool := range availableAIs {
+		if tool == autoAI {
+			aiCursor = i
+			break
+		}
+	}
 
 	return model{
-		state:      0,
-		focusIndex: 0,
-		inputs:     inputs,
-		platforms:  []string{"Workday", "Taleo", "Greenhouse", "iCIMS"},
-		cursor:     0,
-		spinner:    s,
-		detectedAI: aiTool,
+		state:        0,
+		focusIndex:   0,
+		inputs:       inputs,
+		platforms:    []string{"Workday", "Taleo", "Greenhouse", "iCIMS"},
+		cursor:       0,
+		spinner:      s,
+		availableAIs: availableAIs,
+		aiCursor:     aiCursor,
+		selectedAI:   availableAIs[aiCursor],
 	}
 }
 
@@ -84,17 +96,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case 0:
 			switch msg.String() {
 			case "q":
-				if m.focusIndex == 2 {
+				if m.focusIndex == 3 {
 					return m, tea.Quit
 				}
 			case "tab", "down":
-				m.focusIndex = (m.focusIndex + 1) % 3
+				m.focusIndex = (m.focusIndex + 1) % 4
 				return m.updateFocus()
 			case "shift+tab", "up":
-				m.focusIndex = (m.focusIndex - 1 + 3) % 3
+				m.focusIndex = (m.focusIndex - 1 + 4) % 4
 				return m.updateFocus()
+			case "left", "h":
+				if m.focusIndex == 2 {
+					m.aiCursor = (m.aiCursor - 1 + len(m.availableAIs)) % len(m.availableAIs)
+					m.selectedAI = m.availableAIs[m.aiCursor]
+					return m, nil
+				}
+			case "right", "l", "space":
+				if m.focusIndex == 2 {
+					m.aiCursor = (m.aiCursor + 1) % len(m.availableAIs)
+					m.selectedAI = m.availableAIs[m.aiCursor]
+					return m, nil
+				}
 			case "enter":
-				if m.focusIndex < 2 {
+				if m.focusIndex < 3 {
 					m.focusIndex++
 					return m.updateFocus()
 				}
@@ -104,7 +128,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			// Handle input field text edits
+			// Handle text input edits for fields 0 and 1
 			var cmd tea.Cmd
 			if m.focusIndex < 2 {
 				m.inputs[m.focusIndex], cmd = m.inputs[m.focusIndex].Update(msg)
@@ -140,7 +164,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case 3:
 			if msg.String() == "o" || msg.String() == "O" {
 				m.state = 4
-				return m, tea.Batch(m.spinner.Tick, runOptimizeCmd(m.cvText, m.jdText, m.platform))
+				return m, tea.Batch(m.spinner.Tick, runOptimizeCmd(m.cvText, m.jdText, m.platform, m.selectedAI))
 			}
 			if msg.String() == "q" || msg.String() == "Q" {
 				return m, tea.Quit
@@ -224,24 +248,23 @@ func detectAiTool() string {
 	return "claude"
 }
 
-func runOptimizeCmd(cv string, jd string, platform string) tea.Cmd {
+func runOptimizeCmd(cv string, jd string, platform string, selectedAI string) tea.Cmd {
 	return func() tea.Msg {
-		aiTool := detectAiTool()
-		cmd := exec.Command("./optimize.sh", "cv.tex", "jd.txt", platform, aiTool)
+		cmd := exec.Command("./optimize.sh", "cv.tex", "jd.txt", platform, selectedAI)
 		err := cmd.Run()
 		return optimizeResult{err: err}
 	}
 }
 
 var (
-	bannerStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFCC00"))
-	badgeStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#00FFFF")).Background(lipgloss.Color("#1A1A2E")).Padding(0, 1)
-	titleStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF75B5")).MarginBottom(1)
-	boxStyle      = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#874BFD")).Padding(1, 2)
-	focusedStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFCC00"))
-	blurredStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#888888"))
-	btnFocused    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#FFCC00")).Padding(0, 2)
-	btnBlurred    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#333333")).Padding(0, 2)
+	bannerStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFCC00"))
+	badgeStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#00FFFF")).Background(lipgloss.Color("#1A1A2E")).Padding(0, 1)
+	titleStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF75B5")).MarginBottom(1)
+	boxStyle     = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#874BFD")).Padding(1, 2)
+	focusedStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFCC00"))
+	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#888888"))
+	btnFocused   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#FFCC00")).Padding(0, 2)
+	btnBlurred   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#333333")).Padding(0, 2)
 )
 
 func (m model) View() string {
@@ -262,9 +285,9 @@ func (m model) View() string {
   ╚═════╝  ╚═══╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═════╝ `)
 
 		subtitle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#888888")).Render("   ATS RESUME SCANNER & AI CV OPTIMIZER")
-		aiBadge := badgeStyle.Render(fmt.Sprintf("🤖 AI Engine: %s (Auto-detected)", strings.ToUpper(m.detectedAI)))
+		aiBadge := badgeStyle.Render(fmt.Sprintf("🤖 AI Engine Selected: %s", strings.ToUpper(m.selectedAI)))
 
-		var jdLabel, cvLabel string
+		var jdLabel, cvLabel, aiLabel string
 		if m.focusIndex == 0 {
 			jdLabel = focusedStyle.Render("► 1. Job Description File (path or text):")
 		} else {
@@ -277,18 +300,25 @@ func (m model) View() string {
 			cvLabel = blurredStyle.Render("  2. CV Upload Path or LaTeX (file or paste):")
 		}
 
-		var btn string
 		if m.focusIndex == 2 {
+			aiLabel = focusedStyle.Render(fmt.Sprintf("► 3. AI Backend Engine:  ◄ [ %s ] ►  (Use ← / → arrows to toggle)", strings.ToUpper(m.selectedAI)))
+		} else {
+			aiLabel = blurredStyle.Render(fmt.Sprintf("  3. AI Backend Engine:    [ %s ]", strings.ToUpper(m.selectedAI)))
+		}
+
+		var btn string
+		if m.focusIndex == 3 {
 			btn = btnFocused.Render("[ 🚀 LET'S GO! ]")
 		} else {
 			btn = btnBlurred.Render("[   LET'S GO!   ]")
 		}
 
-		helpText := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render("(Press Tab/Arrow keys to navigate, Enter to select)")
+		helpText := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render("(Press Tab/Arrow keys to navigate, ←/→ to toggle AI, Enter to select)")
 
 		content = asciiBanner + "\n" + subtitle + "\n\n" + aiBadge + "\n\n" +
 			jdLabel + "\n" + m.inputs[0].View() + "\n\n" +
 			cvLabel + "\n" + m.inputs[1].View() + "\n\n" +
+			aiLabel + "\n\n" +
 			btn + "\n\n" + helpText
 
 	case 1:
@@ -333,13 +363,13 @@ func (m model) View() string {
 				content += "• " + rec + "\n"
 			}
 
-			content += fmt.Sprintf("\nAI Backend: %s\n", badgeStyle.Render(m.detectedAI))
+			content += fmt.Sprintf("\nAI Backend Engine: %s\n", badgeStyle.Render(strings.ToUpper(m.selectedAI)))
 			content += "\nPress [O] to Optimize with AI (Headless)"
 			content += "\nPress [Q] to Quit"
 		}
 
 	case 4:
-		content = fmt.Sprintf("\n\n   %s Rewriting CV using %s LLM...\n\n   Please wait, generating optimized LaTeX and PDF...", m.spinner.View(), strings.ToUpper(m.detectedAI))
+		content = fmt.Sprintf("\n\n   %s Rewriting CV using %s LLM...\n\n   Please wait, generating optimized LaTeX and PDF...", m.spinner.View(), strings.ToUpper(m.selectedAI))
 
 	case 5:
 		if m.err != nil {
