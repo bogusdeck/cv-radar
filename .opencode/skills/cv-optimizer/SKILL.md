@@ -2,7 +2,7 @@
 name: cv-optimizer
 description: >-
   Use this skill when the user says "cv-optimizer", "/cv-optimizer", "optimize my CV", or "scan my resume".
-  Launches an interactive ATS analysis and optimization workflow. Scores the CV against the job description,
+  Launches the interactive cv-tui dashboard and ATS optimization workflow. Scores the CV against the job description,
   identifies missing keywords, then optionally rewrites the CV using the headless AI backend.
   Supports Workday, Taleo, Greenhouse, and iCIMS platforms.
 ---
@@ -13,7 +13,7 @@ This skill turns the agent into a full ATS scoring and CV optimization pipeline.
 
 ## Step 1 — Launch the TUI Dashboard
 
-Tell the user to run the TUI in a terminal to get the visual score:
+Immediately execute `cv-tui` (or `./cv-tui` if in local directory) in the terminal to launch the visual TUI dashboard:
 
 ```bash
 cv-tui

@@ -1,16 +1,12 @@
 ---
-description: ATS Resume Scanner & AI CV Optimizer — score CV against JD and auto-rewrite for Workday, Taleo, Greenhouse, or iCIMS
+description: ATS Resume Scanner & AI CV Optimizer — launch interactive TUI dashboard and auto-rewrite CV
 ---
 
 You are an expert ATS (Applicant Tracking System) CV analyzer and resume optimizer.
 
 When this command is triggered:
-1. Look for `cv.tex` (or `cv_test.txt` / any `.tex` or `.md` CV file) and `jd.txt` (or `jd_test.txt` / any `.txt` JD file) in the workspace. If missing, ask the user to provide them.
-2. Tell the user they can run the interactive terminal UI with `cv-tui` in their terminal.
-3. Compare the CV text against the Job Description:
-   - Extract required hard skills, tools, and qualifications.
-   - List matched vs missing keywords.
-   - Calculate ATS fit score and letter grade (A/B/C/D/F).
-4. Apply platform scoring rules (Workday, Taleo, Greenhouse, iCIMS).
-5. Run `./optimize.sh <path_to_cv> <path_to_jd> <platform> opencode` to generate `optimized_cv.md`.
-6. Compile the result to PDF using `tectonic optimized_cv.md -o output/Optimized_Resume.pdf`.
+1. **Launch Interactive TUI**: Run `cv-tui` (or `./cv-tui` if in local directory) in the terminal to open the visual ATS score dashboard immediately for the user.
+2. **Analyze Workspace Documents**: Read `cv.tex` (or `cv_test.txt` / any `.tex` or `.md` CV file) and `jd.txt` (or `jd_test.txt` / any `.txt` JD file) in the workspace.
+3. **Perform Keyword & ATS Audit**: Extract required skills, detect missing keywords, and calculate the target ATS score & grade (Workday, Taleo, Greenhouse, iCIMS).
+4. **Headless Optimization**: Execute `./optimize.sh <path_to_cv> <path_to_jd> <platform> opencode` to auto-rewrite the resume into `optimized_cv.md`.
+5. **PDF Compilation**: Compile `optimized_cv.md` via `tectonic optimized_cv.md -o output/Optimized_Resume.pdf`.
