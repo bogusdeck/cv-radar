@@ -225,6 +225,11 @@ func main() {
 	isOpenArg := len(os.Args) > 1 && (os.Args[1] == "open" || os.Args[1] == "-open" || os.Args[1] == "--open")
 	if isOpenArg {
 		if runtime.GOOS == "darwin" {
+			if _, err := exec.LookPath("kitty"); err == nil {
+				exec.Command("kitty", "-e", "cv-tui").Start()
+				fmt.Println("🚀 Launched cv-tui in Kitty terminal window!")
+				return
+			}
 			exec.Command("osascript", "-e", `tell application "Terminal" to activate`, "-e", `tell application "Terminal" to do script "cv-tui"`).Run()
 			fmt.Println("🚀 Launched cv-tui in active Terminal window!")
 			return

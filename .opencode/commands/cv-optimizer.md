@@ -6,8 +6,8 @@ You are an expert ATS (Applicant Tracking System) CV analyzer and resume optimiz
 
 When this command is triggered:
 1. **Launch Interactive TUI Window**: Execute:
-   `osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "cv-tui"' 2>/dev/null || cv-tui open`
-   This will bring the interactive `cv-tui` visual score dashboard directly to the front of the user's screen.
+   `kitty -e cv-tui 2>/dev/null || osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "cv-tui"' 2>/dev/null || cv-tui open`
+   This will bring the interactive `cv-tui` visual score dashboard directly to the front in Kitty terminal.
 
 2. **Analyze Workspace Documents**: Read `cv.tex` (or `cv_test.txt` / any `.tex` or `.md` CV file) and `jd.txt` (or `jd_test.txt` / any `.txt` JD file) in the workspace.
 
