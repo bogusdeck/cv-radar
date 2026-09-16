@@ -17,6 +17,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type editorFinishedMsg struct {
+	fieldIndex int
+	tempPath   string
+	err        error
+}
+
 type model struct {
 	state        int // 0:welcome/input form, 1:select ATS, 2:scanning, 3:result, 4:optimizing, 5:done
 	focusIndex   int // 0: JD input, 1: CV input, 2: AI Engine selector, 3: Let's Go button
@@ -47,15 +53,15 @@ func initialModel() model {
 
 	inputs := make([]textinput.Model, 2)
 	inputs[0] = textinput.New()
-	inputs[0].Placeholder = "jd.txt (or paste job description text)"
+	inputs[0].Placeholder = "jd.txt (or paste text, or press Ctrl+G for Vim)"
 	inputs[0].Focus()
 	inputs[0].CharLimit = 500
-	inputs[0].Width = 52
+	inputs[0].Width = 54
 
 	inputs[1] = textinput.New()
-	inputs[1].Placeholder = "cv.tex (or file path / paste LaTeX)"
+	inputs[1].Placeholder = "cv.tex (or file path, or press Ctrl+G for Vim)"
 	inputs[1].CharLimit = 500
-	inputs[1].Width = 52
+	inputs[1].Width = 54
 
 	autoAI := detectAiTool()
 	availableAIs := []string{"opencode", "claude", "agy", "codex"}
@@ -84,6 +90,51 @@ func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+func openExternalEditor(fieldIndex int, initialContent string) tea.Cmd {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = os.Getenv("VISUAL")
+	}
+	if editor == "" {
+		if _, err := exec.LookPath("nvim"); err == nil {
+			editor = "nvim"
+		} else if _, err := exec.LookPath("vim"); err == nil {
+			editor = "vim"
+		} else if _, err := exec.LookPath("nano"); err == nil {
+			editor = "nano"
+		} else {
+			editor = "vi"
+		}
+	}
+
+	ext := ".txt"
+	if fieldIndex == 1 {
+		ext = ".tex"
+	}
+
+	tmpFile, err := ioutil.TempFile("", "cv_radar_*"+ext)
+	if err != nil {
+		return func() tea.Msg {
+			return editorFinishedMsg{fieldIndex: fieldIndex, tempPath: "", err: err}
+		}
+	}
+
+	tmpPath := tmpFile.Name()
+	if initialContent != "" {
+		tmpFile.WriteString(initialContent)
+	}
+	tmpFile.Close()
+
+	c := exec.Command(editor, tmpPath)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return editorFinishedMsg{
+			fieldIndex: fieldIndex,
+			tempPath:   tmpPath,
+			err:        err,
+		}
+	})
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -94,6 +145,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.state {
 		case 0:
+			if msg.String() == "ctrl+g" {
+				if m.focusIndex < 2 {
+					currentVal := m.inputs[m.focusIndex].Value()
+					return m, openExternalEditor(m.focusIndex, currentVal)
+				}
+			}
+
 			switch msg.String() {
 			case "q":
 				if m.focusIndex == 3 {
@@ -175,6 +233,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
+
+	case editorFinishedMsg:
+		if msg.err == nil && msg.tempPath != "" {
+			if b, err := ioutil.ReadFile(msg.tempPath); err == nil {
+				content := strings.TrimSpace(string(b))
+				if content != "" {
+					m.inputs[msg.fieldIndex].SetValue(content)
+				}
+			}
+			os.Remove(msg.tempPath)
+		}
+		return m, nil
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -289,15 +359,15 @@ func (m model) View() string {
 
 		var jdLabel, cvLabel, aiLabel string
 		if m.focusIndex == 0 {
-			jdLabel = focusedStyle.Render("► 1. Job Description File (path or text):")
+			jdLabel = focusedStyle.Render("► 1. Job Description File (path, text, or Ctrl+G for Vim):")
 		} else {
-			jdLabel = blurredStyle.Render("  1. Job Description File (path or text):")
+			jdLabel = blurredStyle.Render("  1. Job Description File (path, text, or Ctrl+G for Vim):")
 		}
 
 		if m.focusIndex == 1 {
-			cvLabel = focusedStyle.Render("► 2. CV Upload Path or LaTeX (file or paste):")
+			cvLabel = focusedStyle.Render("► 2. CV Upload Path or LaTeX (file, paste, or Ctrl+G for Vim):")
 		} else {
-			cvLabel = blurredStyle.Render("  2. CV Upload Path or LaTeX (file or paste):")
+			cvLabel = blurredStyle.Render("  2. CV Upload Path or LaTeX (file, paste, or Ctrl+G for Vim):")
 		}
 
 		if m.focusIndex == 2 {
@@ -313,7 +383,7 @@ func (m model) View() string {
 			btn = btnBlurred.Render("[   LET'S GO!   ]")
 		}
 
-		helpText := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render("(Press Tab/Arrow keys to navigate, ←/→ to toggle AI, Enter to select)")
+		helpText := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render("(Press Tab to navigate, ←/→ for AI, Ctrl+G for Vim editor, Enter to submit)")
 
 		content = asciiBanner + "\n" + subtitle + "\n\n" + aiBadge + "\n\n" +
 			jdLabel + "\n" + m.inputs[0].View() + "\n\n" +
