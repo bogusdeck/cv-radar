@@ -282,22 +282,60 @@
         </div>
       </section>
 
-      <!-- Supported AI Coding CLIs Window -->
-      <section class="py-6">
-        <div class="font-card text-center py-8">
+      <!-- Supported AI Coding CLIs Window (3D Revolving Orbit System) -->
+      <section class="py-8 overflow-hidden">
+        <div class="font-card relative min-h-[400px] flex flex-col items-center justify-center py-6 select-none" id="orbit-section">
           <div class="window-dots"><span></span><span></span><span></span></div>
           <div class="window-title">agent_integrations</div>
-          <h3 class="font-pixel text-accent-yellow text-xs mb-4 flex items-center justify-center gap-2">
-            <i class="pixelarticons-terminal text-lg"></i>
-            <span>SUPPORTED AI CODING CLIs</span>
-          </h3>
-          <div class="flex flex-wrap justify-center gap-3">
-            <span class="font-vt323 text-lg md:text-xl bg-black border-2 border-accent-yellow text-accent-yellow px-4 py-1 shadow-[2px_2px_0_#000]">agy (Antigravity)</span>
-            <span class="font-vt323 text-lg md:text-xl bg-black border-2 border-accent-yellow text-accent-yellow px-4 py-1 shadow-[2px_2px_0_#000]">claude (Claude Code)</span>
-            <span class="font-vt323 text-lg md:text-xl bg-black border-2 border-accent-yellow text-accent-yellow px-4 py-1 shadow-[2px_2px_0_#000]">codex (Codex)</span>
-            <span class="font-vt323 text-lg md:text-xl bg-black border-2 border-accent-yellow text-accent-yellow px-4 py-1 shadow-[2px_2px_0_#000]">opencode (OpenCode)</span>
-            <span class="font-vt323 text-lg md:text-xl bg-black border-2 border-accent-yellow text-accent-yellow px-4 py-1 shadow-[2px_2px_0_#000]">cv-tui (Standalone CLI)</span>
+
+          <!-- Central Core -->
+          <div class="relative z-10 bg-black border-4 border-white p-4 md:p-5 shadow-[6px_6px_0_#000] text-center max-w-xs cursor-pointer hover:border-accent-yellow transition-colors">
+            <h3 class="font-pixel text-accent-yellow text-xs flex items-center justify-center gap-2 mb-1">
+              <i class="pixelarticons-terminal text-lg"></i>
+              <span>CV-RADAR CORE</span>
+            </h3>
+            <p class="font-vt323 text-gray-300 text-base md:text-lg">SUPPORTED AI CODING CLIs</p>
           </div>
+
+          <!-- Dashed Orbital Ring (Visual guide) -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] md:w-[620px] h-[130px] md:h-[220px] border-2 border-dashed border-accent-yellow/30 rounded-[50%] pointer-events-none z-0"></div>
+
+          <!-- Orbiting LLM Satellite Cards -->
+          <div class="orbit-planet absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 cursor-pointer" data-orbit-index="0">
+            <div class="bg-black border-2 border-accent-yellow text-accent-yellow font-vt323 text-lg md:text-xl px-4 py-1.5 shadow-[4px_4px_0_#000] whitespace-nowrap flex items-center gap-2 hover:bg-accent-yellow hover:text-black transition-colors">
+              <i class="pixelarticons-code"></i>
+              <span>agy (Antigravity)</span>
+            </div>
+          </div>
+
+          <div class="orbit-planet absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 cursor-pointer" data-orbit-index="1">
+            <div class="bg-black border-2 border-accent-yellow text-accent-yellow font-vt323 text-lg md:text-xl px-4 py-1.5 shadow-[4px_4px_0_#000] whitespace-nowrap flex items-center gap-2 hover:bg-accent-yellow hover:text-black transition-colors">
+              <i class="pixelarticons-code"></i>
+              <span>claude (Claude Code)</span>
+            </div>
+          </div>
+
+          <div class="orbit-planet absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 cursor-pointer" data-orbit-index="2">
+            <div class="bg-black border-2 border-accent-yellow text-accent-yellow font-vt323 text-lg md:text-xl px-4 py-1.5 shadow-[4px_4px_0_#000] whitespace-nowrap flex items-center gap-2 hover:bg-accent-yellow hover:text-black transition-colors">
+              <i class="pixelarticons-code"></i>
+              <span>codex (Codex)</span>
+            </div>
+          </div>
+
+          <div class="orbit-planet absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 cursor-pointer" data-orbit-index="3">
+            <div class="bg-black border-2 border-accent-yellow text-accent-yellow font-vt323 text-lg md:text-xl px-4 py-1.5 shadow-[4px_4px_0_#000] whitespace-nowrap flex items-center gap-2 hover:bg-accent-yellow hover:text-black transition-colors">
+              <i class="pixelarticons-code"></i>
+              <span>opencode (OpenCode)</span>
+            </div>
+          </div>
+
+          <div class="orbit-planet absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 cursor-pointer" data-orbit-index="4">
+            <div class="bg-black border-2 border-accent-yellow text-accent-yellow font-vt323 text-lg md:text-xl px-4 py-1.5 shadow-[4px_4px_0_#000] whitespace-nowrap flex items-center gap-2 hover:bg-accent-yellow hover:text-black transition-colors">
+              <i class="pixelarticons-terminal"></i>
+              <span>cv-tui (Standalone CLI)</span>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -352,7 +390,7 @@
 
   </div>
 
-  <!-- MONOCHROME ORDERED DITHER CANVAS WITH CURSOR INTERACTION SCRIPT -->
+  <!-- MONOCHROME ORDERED DITHER CANVAS WITH CURSOR INTERACTION & 3D ORBIT LOGIC -->
   <script>
     const canvas = document.getElementById('dither-canvas');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -505,6 +543,50 @@
     } else {
       renderFrame(5); 
     }
+
+    // --- 3D REVOLVING ORBIT ANIMATION FOR LLM CARDS ---
+    const planets = document.querySelectorAll('.orbit-planet');
+    const orbitSection = document.getElementById('orbit-section');
+    let orbitAngle = 0;
+    let isOrbitPaused = false;
+
+    if (orbitSection) {
+      orbitSection.addEventListener('mouseenter', () => isOrbitPaused = true);
+      orbitSection.addEventListener('mouseleave', () => isOrbitPaused = false);
+    }
+
+    function updateOrbit() {
+      if (!isOrbitPaused && !prefersReducedMotion.matches) {
+        orbitAngle += 0.007; // Smooth revolving speed
+      }
+
+      const isMobile = window.innerWidth < 768;
+      const rx = isMobile ? 140 : 280; // Horizontal orbit radius
+      const ry = isMobile ? 55 : 100;  // Vertical tilt radius
+      const totalPlanets = planets.length;
+
+      planets.forEach((planet, i) => {
+        const angleOffset = (i * (2 * Math.PI / totalPlanets));
+        const currentAngle = orbitAngle + angleOffset;
+
+        const x = rx * Math.cos(currentAngle);
+        const y = ry * Math.sin(currentAngle);
+        
+        // Depth scale & z-index
+        const sinVal = Math.sin(currentAngle);
+        const scale = isMobile ? (0.75 + 0.25 * (sinVal + 1) / 2) : (0.8 + 0.3 * (sinVal + 1) / 2);
+        const opacity = 0.7 + 0.3 * (sinVal + 1) / 2;
+        const zIndex = sinVal > 0 ? 20 : 5; // In front of core when sin > 0, behind core when sin < 0
+
+        planet.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, 0px) scale(${scale})`;
+        planet.style.zIndex = zIndex;
+        planet.style.opacity = opacity;
+      });
+
+      requestAnimationFrame(updateOrbit);
+    }
+
+    updateOrbit();
 
     function copyCmd() {
       const cmdText = document.getElementById('cmd-text').innerText;
