@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV-RADAR — ATS Resume Scanner & AI CV Optimizer</title>
+  <meta name="description" content="Score your CV against job descriptions, find missing keywords, and auto-rewrite it for Workday, Taleo, Greenhouse, or iCIMS headlessly inside your AI coding CLI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f293d;
+      --accent: #FF75B5;
+      --purple: #874BFD;
+      --cyan: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --code-bg: #030712;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Header & Nav */
+    header {
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 5rem 0 4rem 0;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(135, 75, 253, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(135, 75, 253, 0.3);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      font-family: 'Fira Code', monospace;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 750px;
+      margin: 0 auto 2.5rem auto;
+    }
+
+    /* One-Line Installer Box */
+    .install-box {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      max-width: 720px;
+      margin: 0 auto 2.5rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .install-code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.95rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Action Buttons */
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #000;
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background-color: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.8rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 4rem 0;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--purple);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Supported Tools Tags */
+    .tools-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin: 4rem 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .tag {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    /* Table Section */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: rgba(255, 255, 255, 0.03);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    td strong {
+      color: var(--text);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      .install-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .copy-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav>
+        <a href="#" class="logo">⚡ CV-<span>RADAR</span></a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#platforms">ATS Platforms</a>
+          <a href="https://github.com/bogusdeck/cv-radar" target="_blank">GitHub Repo</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="badge">AGENT SKILL & CLI TOOL</div>
+      <h1>ATS Resume Scanner & AI CV Optimizer</h1>
+      <p class="hero-subtitle">
+        Score your CV against Job Descriptions, detect missing keywords, and automatically rewrite your resume for Workday, Taleo, Greenhouse, or iCIMS — right inside your AI coding CLI.
+      </p>
+
+      <div class="install-box">
+        <code class="install-code" id="cmd-text">curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash</code>
+        <button class="copy-btn" onclick="copyCmd()">Copy Command</button>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="btn-primary">View on GitHub</a>
+        <a href="#features" class="btn-secondary">Explore Features</a>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2 class="section-title">Why CV-RADAR?</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>ATS Scoring Engine</h3>
+          <p>Go-powered engine evaluating exact keyword match, keyword density, role fit, and penalty conditions across major ATS systems.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h3>Missing Keyword Audit</h3>
+          <p>Automatically scans job descriptions and pinpoints every critical skill, tool, and qualification omitted from your resume.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🖥️</div>
+          <h3>Terminal UI Dashboard</h3>
+          <p>Interactive <code>cv-tui</code> dashboard built with Bubble Tea for live platform scoring, grade calculations (A–F), and recommendations.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🤖</div>
+          <h3>Universal AI Agent Skill</h3>
+          <p>Registered skill for <strong>Antigravity</strong>, <strong>Claude Code</strong>, <strong>Codex</strong>, and <strong>OpenCode</strong>. Just type <code>/cv-optimizer</code> in chat.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Headless AI Rewriter</h3>
+          <p>Background execution script (<code>optimize.sh</code>) that orchestrates LLMs to tailor your CV content without manual copy-pasting.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📄</div>
+          <h3>Tectonic PDF Typesetting</h3>
+          <p>Compiles optimized LaTeX directly to clean, production-grade PDF resumes ready for submission.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tools-section">
+      <h2>Supported AI Coding CLIs</h2>
+      <p style="color: var(--muted); margin-top: 0.5rem;">Install once, use seamlessly inside any of your favorite agent environments:</p>
+      <div class="tag-list">
+        <span class="tag">agy (Antigravity)</span>
+        <span class="tag">claude (Claude Code)</span>
+        <span class="tag">codex (Codex)</span>
+        <span class="tag">opencode (OpenCode)</span>
+        <span class="tag">cv-tui (Standalone CLI)</span>
+      </div>
+    </section>
+
+    <section id="platforms">
+      <h2 class="section-title">Supported ATS Platforms</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Scoring Strategy</th>
+              <th>Key Focus</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Workday</strong></td>
+              <td>Strict exact-keyword matching</td>
+              <td>Requires precise terminology from the JD. Heavy penalties for missing skills.</td>
+            </tr>
+            <tr>
+              <td><strong>Taleo</strong></td>
+              <td>Keyword density scoring</td>
+              <td>Boosts scores when critical JD keywords are repeated across summary and experience points.</td>
+            </tr>
+            <tr>
+              <td><strong>Greenhouse</strong></td>
+              <td>Semantic AI + human reviewer fit</td>
+              <td>Focuses on natural phrasing, contextual impact, and measurable achievements.</td>
+            </tr>
+            <tr>
+              <td><strong>iCIMS</strong></td>
+              <td>Mixed exact + semantic match</td>
+              <td>Primary weight on job title alignment, structural cleanliness, and date formats.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>CV-RADAR is open source under MIT License. Built by <a href="https://github.com/bogusdeck" target="_blank">Tanish Vashisth (bogusdeck)</a>.</p>
+    </div>
+  </footer>
+
+  <script>
+    function copyCmd() {
+      const cmdText = document.getElementById('cmd-text').innerText;
+      navigator.clipboard.writeText(cmdText);
+      const btn = document.querySelector('.copy-btn');
+      btn.innerText = 'Copied!';
+      setTimeout(() => {
+        btn.innerText = 'Copy Command';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
