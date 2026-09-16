@@ -324,7 +324,7 @@
 
   </div>
 
-  <!-- MONOCHROME ORDERED DITHER CANVAS SCRIPT -->
+  <!-- MONOCHROME ORDERED DITHER CANVAS WITH CURSOR INTERACTION SCRIPT -->
   <script>
     const canvas = document.getElementById('dither-canvas');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -356,6 +356,22 @@
     let imgData;
     let isVisible = true;
 
+    // Mouse Tracking for Interactive Cursor Dither Trail
+    let mouseX = -100;
+    let mouseY = -100;
+    let targetMouseX = -100;
+    let targetMouseY = -100;
+
+    window.addEventListener('mousemove', (e) => {
+      targetMouseX = Math.floor(e.clientX / PIXEL_SCALE);
+      targetMouseY = Math.floor(e.clientY / PIXEL_SCALE);
+    });
+
+    window.addEventListener('mouseleave', () => {
+      targetMouseX = -100;
+      targetMouseY = -100;
+    });
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     function resizeCanvas() {
@@ -382,6 +398,18 @@
       
       let value = (wave1 + wave2 + wave3) / 4.5 + 0.5;
       value -= ny * 0.3;
+
+      // Cursor Pixel Dither Ripple Effect
+      if (mouseX >= 0 && mouseY >= 0) {
+        let dx = x - mouseX;
+        let dy = y - mouseY;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        let radius = 22; // Canvas radius pixels (~130px on screen)
+        if (dist < radius) {
+          let influence = (1 - dist / radius);
+          value += influence * 0.45 * Math.cos(dist * 0.4 - t * 4);
+        }
+      }
 
       return Math.max(0, Math.min(1, value));
     }
@@ -414,6 +442,10 @@
     function animate() {
       if (!isVisible || prefersReducedMotion.matches) return;
       
+      // Lerp mouse position for smooth trailing effect
+      mouseX += (targetMouseX - mouseX) * 0.15;
+      mouseY += (targetMouseY - mouseY) * 0.15;
+
       time += 0.02; 
       renderFrame(time);
       animationFrameId = requestAnimationFrame(animate);
