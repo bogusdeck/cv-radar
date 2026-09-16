@@ -346,12 +346,48 @@ func findOptimizeScript() string {
 	return "./optimize.sh"
 }
 
-func runOptimizeCmd(cv string, jd string, platform string, selectedAI string) tea.Cmd {
+func runOptimizeCmd(cvText string, jdText string, platform string, selectedAI string) tea.Cmd {
 	return func() tea.Msg {
 		scriptPath := findOptimizeScript()
-		cmd := exec.Command(scriptPath, "cv.tex", "jd.txt", platform, selectedAI)
-		err := cmd.Run()
-		return optimizeResult{err: err}
+
+		// Write CV text to temp file
+		cvTmp, err := ioutil.TempFile("", "cv_input_*.tex")
+		if err != nil {
+			return optimizeResult{err: fmt.Errorf("failed to create temp CV file: %v", err)}
+		}
+		defer os.Remove(cvTmp.Name())
+		if strings.TrimSpace(cvText) == "" {
+			cvText = "Backend Engineer CV"
+		}
+		cvTmp.WriteString(cvText)
+		cvTmp.Close()
+
+		// Write JD text to temp file
+		jdTmp, err := ioutil.TempFile("", "jd_input_*.txt")
+		if err != nil {
+			return optimizeResult{err: fmt.Errorf("failed to create temp JD file: %v", err)}
+		}
+		defer os.Remove(jdTmp.Name())
+		if strings.TrimSpace(jdText) == "" {
+			jdText = "Backend Engineer"
+		}
+		jdTmp.WriteString(jdText)
+		jdTmp.Close()
+
+		cmd := exec.Command(scriptPath, cvTmp.Name(), jdTmp.Name(), platform, selectedAI)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+			lastLine := err.Error()
+			for i := len(lines) - 1; i >= 0; i-- {
+				if l := strings.TrimSpace(lines[i]); l != "" {
+					lastLine = l
+					break
+				}
+			}
+			return optimizeResult{err: fmt.Errorf("%s", lastLine)}
+		}
+		return optimizeResult{err: nil}
 	}
 }
 
