@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/bogusdeck/ats-scanner/internal/ats"
@@ -220,6 +221,16 @@ func (m model) View() string {
 }
 
 func main() {
+	// If launched with open flag or from a non-interactive tool call (AI agent like OpenCode / Claude Code / Antigravity)
+	isOpenArg := len(os.Args) > 1 && (os.Args[1] == "open" || os.Args[1] == "-open" || os.Args[1] == "--open")
+	if isOpenArg {
+		if runtime.GOOS == "darwin" {
+			exec.Command("osascript", "-e", `tell application "Terminal" to do script "cv-tui"`).Run()
+			fmt.Println("🚀 Launched cv-tui in interactive Terminal window!")
+			return
+		}
+	}
+
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)

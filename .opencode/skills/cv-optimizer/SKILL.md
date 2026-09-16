@@ -13,10 +13,10 @@ This skill turns the agent into a full ATS scoring and CV optimization pipeline.
 
 ## Step 1 — Launch the TUI Dashboard
 
-Immediately execute `cv-tui` (or `./cv-tui` if in local directory) in the terminal to launch the visual TUI dashboard:
+Immediately launch the visual TUI dashboard in an interactive terminal window:
 
 ```bash
-cv-tui
+osascript -e 'tell application "Terminal" to do script "cv-tui"' 2>/dev/null || cv-tui open || cv-tui
 ```
 
 The TUI will:
