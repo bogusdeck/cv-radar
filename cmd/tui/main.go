@@ -135,10 +135,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func detectAiTool() string {
+	tools := []string{"opencode", "claude", "agy", "codex"}
+	for _, t := range tools {
+		if _, err := exec.LookPath(t); err == nil {
+			return t
+		}
+	}
+	return "claude"
+}
+
 func runOptimizeCmd(cv string, jd string, platform string) tea.Cmd {
 	return func() tea.Msg {
-		// Call the optimize.sh script we created earlier!
-		cmd := exec.Command("./optimize.sh", "cv_test.txt", "jd_test.txt", platform, "agy") // using agy for test
+		aiTool := detectAiTool()
+		cmd := exec.Command("./optimize.sh", "cv_test.txt", "jd_test.txt", platform, aiTool)
 		err := cmd.Run()
 		return optimizeResult{err: err}
 	}
