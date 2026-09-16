@@ -27,7 +27,7 @@ echo ""
 
 # ─── Detect Execution Context ─────────────────────────────────────────────────
 
-if [ -f "./cmd/server/main.go" ]; then
+if [ -f "./cmd/tui/main.go" ]; then
   INSTALL_DIR="$(pwd)"
   IS_LOCAL_BUILD=1
 else
@@ -59,14 +59,6 @@ else
   echo -e "${GREEN}✓ tectonic${RESET}"
 fi
 
-# Node (web UI)
-if ! command -v node &>/dev/null; then
-  echo -e "${YELLOW}⚠ node not found — web UI will be unavailable.${RESET}"
-  NODE_MISSING=1
-else
-  echo -e "${GREEN}✓ node $(node -v)${RESET}"
-fi
-
 echo ""
 
 # ─── Clone or Update Repository ──────────────────────────────────────────────
@@ -82,23 +74,13 @@ if [ "$IS_LOCAL_BUILD" -eq 0 ]; then
   cd "$INSTALL_DIR"
 fi
 
-# ─── Build Binaries ──────────────────────────────────────────────────────────
-
-echo -e "${BOLD}Building Go API server...${RESET}"
-go build -o server ./cmd/server
-echo -e "${GREEN}✓ server binary built${RESET}"
+# ─── Build Binary ────────────────────────────────────────────────────────────
 
 echo -e "${BOLD}Building TUI dashboard...${RESET}"
 go build -o cv-tui ./cmd/tui
 echo -e "${GREEN}✓ cv-tui binary built${RESET}"
 
-if [ -z "$NODE_MISSING" ] && [ -d "web" ]; then
-  echo -e "${BOLD}Building Web UI frontend...${RESET}"
-  (cd web && npm install --silent && npm run build)
-  echo -e "${GREEN}✓ web UI built${RESET}"
-fi
-
-chmod +x start.sh optimize.sh
+chmod +x optimize.sh
 
 # ─── Global CLI & Skill Setup ─────────────────────────────────────────────────
 
@@ -149,10 +131,6 @@ echo ""
 echo -e "  ${BOLD}2. Terminal UI (TUI):${RESET}"
 echo -e "     Run from anywhere:"
 echo -e "       ${BLUE}cv-tui${RESET}"
-echo ""
-echo -e "  ${BOLD}3. Web App Dashboard:${RESET}"
-echo -e "     Start full stack:"
-echo -e "       ${BLUE}cd $INSTALL_DIR && ./start.sh${RESET}"
 echo ""
 
 if [ -n "$TECTONIC_MISSING" ]; then

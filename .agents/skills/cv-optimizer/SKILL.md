@@ -13,94 +13,60 @@ This skill turns the agent into a full ATS scoring and CV optimization pipeline.
 
 ## Step 1 — Launch the TUI Dashboard
 
-Tell the user to run the TUI in a separate terminal tab to get the visual score:
+Tell the user to run the TUI in a terminal to get the visual score:
 
-```
-./cv-tui
+```bash
+cv-tui
 ```
 
 The TUI will:
-- Load the Job Description from `jd_test.txt`
+- Load the Job Description & CV
 - Let the user pick the target ATS platform (Workday, Taleo, Greenhouse, iCIMS)
-- Score the CV and show the total score, grade (A/B/C/D/F), and all missing keywords
+- Score the CV and show the total score, grade (A/B/C/D/F), and missing keywords
 
 ## Step 2 — Read the CV and JD
 
-Read both files now:
-- CV: `cv_test.txt` (or any `.tex` / `.md` file the user points to)
-- JD: `jd_test.txt` (or any `.txt` file the user points to)
+Read both files:
+- CV: `cv.tex` (or `cv_test.txt` / any `.tex` / `.md` file the user points to)
+- JD: `jd.txt` (or `jd_test.txt` / any `.txt` file the user points to)
 
 If either file is missing, ask the user to paste the content directly into the chat.
 
-## Step 3 — Run the ATS Scan (Go backend)
+## Step 3 — Analyze CV Keywords & ATS Fit
 
-Use the Go binary to score the CV against the JD:
+Compare the CV text against the Job Description:
+1. Extract required hard skills, job title, and tool keywords from the JD.
+2. Cross-check against the CV to compile matched vs missing keywords.
+3. Apply platform scoring rules:
+   - **Workday**: Exact keyword matches required.
+   - **Taleo**: Keyword repetition & density.
+   - **Greenhouse**: Natural phrasing with measurable achievements.
+   - **iCIMS**: Direct job title alignment.
 
-```bash
-go run ./cmd/server &
-# or if compiled already:
-./server &
-```
+## Step 4 — Optimize the CV (Headless AI Script)
 
-Then hit the API directly:
-
-```bash
-curl -X POST http://localhost:8085/api/analyze \
-  -F "jd=@jd_test.txt" \
-  -F "platform=Workday"
-```
-
-Print the result clearly: score, grade, matched keywords, missing keywords, recommendations.
-
-## Step 4 — Identify Missing Keywords
-
-From the scan result, extract the `MissingKeywords` list. These are the keywords in the JD that the CV does NOT contain. Tell the user exactly which ones are missing.
-
-## Step 5 — Optimize the CV (Headless AI)
-
-If the user asks to optimize, run the bash script that dispatches to the headless AI CLI:
+Run the optimization script to rewrite the CV:
 
 ```bash
-# Using Claude Code
-./optimize.sh cv_test.txt jd_test.txt Workday claude
-
 # Using Antigravity (agy)
-./optimize.sh cv_test.txt jd_test.txt Workday agy
+./optimize.sh cv.tex jd.txt Workday agy
+
+# Using Claude Code
+./optimize.sh cv.tex jd.txt Workday claude
 
 # Using OpenCode
-./optimize.sh cv_test.txt jd_test.txt Workday opencode
+./optimize.sh cv.tex jd.txt Workday opencode
 ```
 
-Wait for it to complete. The output will be saved to `optimized_cv.md`.
+The optimized LaTeX output will be saved to `optimized_cv.md`.
 
-## Step 6 — Compile the Optimized CV to PDF
+## Step 5 — Compile to PDF
 
-Once `optimized_cv.md` is ready, compile it to PDF via the Go backend:
+Compile `optimized_cv.md` into a PDF via `tectonic`:
 
 ```bash
-curl -X POST http://localhost:8085/api/fix-resume/compile \
-  -H "Content-Type: application/json" \
-  -d "{\"latex\": \"$(cat optimized_cv.md | tr -d '\n' | sed 's/"/\\"/g')\"}"
+tectonic optimized_cv.md -o output/Optimized_Resume.pdf
 ```
-
-The PDF will be returned as a download or saved to `output/`.
-
-## Step 7 — Re-scan and Verify
-
-Re-run Step 3 against the newly optimized CV to confirm the score improved. The target is 90+.
-
----
-
-## ATS Platform Strategies
-
-Apply these platform-specific strategies when generating the prompt in Step 5:
-
-| Platform | Strategy |
-|---|---|
-| **Workday** | Strict exact-keyword matching. Use the EXACT terminology from the JD. Even slight rephrasing causes misses. |
-| **Taleo** | High keyword density. Repeat the most critical JD keywords 2-3 times across Summary, Experience, and Skills. |
-| **Greenhouse** | Semantic AI + human review. Avoid stuffing. Focus on measurable impact and natural phrasing. |
-| **iCIMS** | Mixed exact + semantic. Align job titles closely to the JD title. |
 
 ---
 
