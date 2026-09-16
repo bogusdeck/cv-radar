@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -318,9 +319,37 @@ func detectAiTool() string {
 	return "claude"
 }
 
+func findOptimizeScript() string {
+	// 1. Check current working directory
+	if _, err := os.Stat("./optimize.sh"); err == nil {
+		return "./optimize.sh"
+	}
+
+	// 2. Check directory of cv-tui binary (resolving symlinks)
+	if execPath, err := os.Executable(); err == nil {
+		if evalPath, err := filepath.EvalSymlinks(execPath); err == nil {
+			scriptPath := filepath.Join(filepath.Dir(evalPath), "optimize.sh")
+			if _, err := os.Stat(scriptPath); err == nil {
+				return scriptPath
+			}
+		}
+	}
+
+	// 3. Check ~/.cv-radar/optimize.sh fallback
+	if home, err := os.UserHomeDir(); err == nil {
+		globalPath := filepath.Join(home, ".cv-radar", "optimize.sh")
+		if _, err := os.Stat(globalPath); err == nil {
+			return globalPath
+		}
+	}
+
+	return "./optimize.sh"
+}
+
 func runOptimizeCmd(cv string, jd string, platform string, selectedAI string) tea.Cmd {
 	return func() tea.Msg {
-		cmd := exec.Command("./optimize.sh", "cv.tex", "jd.txt", platform, selectedAI)
+		scriptPath := findOptimizeScript()
+		cmd := exec.Command(scriptPath, "cv.tex", "jd.txt", platform, selectedAI)
 		err := cmd.Run()
 		return optimizeResult{err: err}
 	}
