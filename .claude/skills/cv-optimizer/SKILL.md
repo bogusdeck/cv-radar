@@ -4,87 +4,67 @@ description: >-
   ATS Resume Scanner & AI CV Optimizer — scan CV, score against job description,
   launch interactive TUI dashboard, and auto-rewrite CVs for Workday, Taleo,
   Greenhouse, and iCIMS.
-arguments: mode
-user_invocable: true
-user-invocable: true
-argument-hint: "[tui | scan | optimize | pdf | {JD text or file}]"
-license: MIT
 ---
 
-# CV Optimizer — Router & Command Center
+# CV Optimizer — ATS Resume Optimizer
 
-CV Optimizer is a multi-CLI ATS resume scanning and optimization tool.
+This skill turns the agent into a full ATS scoring and CV optimization pipeline. When invoked via `/cv-optimizer` or "optimize my CV", follow the steps below in order.
 
-## Mode Routing
+## Step 1 — Launch the Interactive TUI Dashboard
 
-Determine the mode from `$mode` / `$ARGUMENTS`:
-
-| Input | Mode | Action |
-|-------|------|--------|
-| (empty / no args) | `menu` | Show interactive command menu |
-| `tui` | `tui` | Launch interactive terminal UI (`cv-tui open`) |
-| `scan` | `scan` | Scan & score `cv.tex` against `jd.txt` in chat |
-| `optimize` | `optimize` | Rewrite CV using `./optimize.sh` |
-| `pdf` | `pdf` | Compile `optimized_cv.md` to PDF via `tectonic` |
-| JD text / URL | **`auto-pipeline`** | Full pipeline: audit → score → optimize → PDF |
-
----
-
-## Discovery Menu (no arguments)
-
-If no arguments are supplied, show this menu in chat:
-
-```
-CV Optimizer -- ATS Resume Scanner & AI Optimizer
-
-Available commands:
-  /cv-optimizer tui        → Launch visual interactive TUI dashboard in Terminal window
-  /cv-optimizer scan       → Run ATS keyword & layout audit in chat
-  /cv-optimizer optimize   → Headless AI rewrite (Workday, Taleo, Greenhouse, iCIMS)
-  /cv-optimizer pdf        → Compile optimized resume to PDF (tectonic)
-  /cv-optimizer {JD/URL}   → Run FULL pipeline (audit + score + rewrite + PDF)
-```
-
----
-
-## Step 1 — TUI Dashboard Mode (`/cv-optimizer tui`)
-
-When `tui` mode is selected or requested, execute:
+Immediately launch the visual TUI dashboard in a focused Terminal window on screen:
 
 ```bash
-osascript -e 'tell application "Terminal" to do script "cv-tui"' 2>/dev/null || cv-tui open || cv-tui
+osascript -e 'tell application "Terminal" to activate' -e 'tell application "Terminal" to do script "cv-tui"' 2>/dev/null || cv-tui open || cv-tui
 ```
 
----
-
-## Step 2 — Scan & Audit Mode (`/cv-optimizer scan` or JD input)
-
-1. Read `cv.tex` (or `cv_test.txt` / workspace CV) and `jd.txt` (or workspace JD).
-2. Extract hard skills, required experience, and job title keywords.
-3. Compare CV vs JD across platforms:
-   - **Workday**: Strict exact string keyword matches.
-   - **Taleo**: Keyword frequency & density scoring.
-   - **Greenhouse**: Impact metrics & structured achievements.
-   - **iCIMS**: Direct title and section alignment.
-4. Output a summary score (0-100), grade (A-F), matched keywords, and missing keywords in clean Markdown tables.
+The TUI will:
+- Load the Job Description & CV
+- Let the user pick the target ATS platform (Workday, Taleo, Greenhouse, iCIMS)
+- Score the CV and show total score, grade (A/B/C/D/F), and missing keywords
 
 ---
 
-## Step 3 — Headless AI Rewrite (`/cv-optimizer optimize`)
+## Step 2 — Read Workspace CV and JD
 
-Run the optimization script:
+Read both files in workspace:
+- CV: `cv.tex` (or `cv_test.txt` / any `.tex` or `.md` CV file)
+- JD: `jd.txt` (or `jd_test.txt` / any `.txt` JD file)
+
+If either file is missing, ask the user to paste the content directly into the chat.
+
+---
+
+## Step 3 — Analyze CV Keywords & ATS Fit
+
+Compare CV text against Job Description:
+1. Extract required hard skills, job title, and tool keywords from the JD.
+2. Cross-check against the CV to compile matched vs missing keywords.
+3. Apply platform scoring rules:
+   - **Workday**: Exact keyword matches required.
+   - **Taleo**: Keyword repetition & density.
+   - **Greenhouse**: Natural phrasing with measurable achievements.
+   - **iCIMS**: Direct job title alignment.
+
+Display the score, grade, matched keywords, and missing keywords in clean Markdown tables.
+
+---
+
+## Step 4 — Optimize the CV (Headless AI Script)
+
+Run the optimization script to rewrite the CV:
 
 ```bash
 ./optimize.sh cv.tex jd.txt Workday opencode
 ```
 
-Save output to `optimized_cv.md`.
+The optimized LaTeX output will be saved to `optimized_cv.md`.
 
 ---
 
-## Step 4 — PDF Compilation (`/cv-optimizer pdf`)
+## Step 5 — Compile to PDF
 
-Compile `optimized_cv.md` via `tectonic`:
+Compile `optimized_cv.md` into a PDF via `tectonic`:
 
 ```bash
 tectonic optimized_cv.md -o output/Optimized_Resume.pdf
@@ -94,7 +74,9 @@ tectonic optimized_cv.md -o output/Optimized_Resume.pdf
 
 ## LaTeX Formatting Rules (CRITICAL)
 
-- Preserve exact LaTeX commands (`\resumeSubheading`, `\resumeItem`).
+When generating or editing LaTeX:
+- Use EXACT structural commands from the original CV. Do NOT invent commands.
+- `\resumeSubheading{Title}{Dates}{Company}{Location}` — exactly 4 args, no `\begin{}`.
 - ALL `\resumeSubheading` must be inside `\resumeSubHeadingListStart` / `\resumeSubHeadingListEnd`.
 - ALL `\resumeItem` must be inside `\resumeItemListStart` / `\resumeItemListEnd`.
-- Escape `%` and `$` in text body.
+- Escape `%` and `$` in plain text. Do NOT escape `&` inside tabular environments.

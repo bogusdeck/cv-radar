@@ -225,8 +225,8 @@ func main() {
 	isOpenArg := len(os.Args) > 1 && (os.Args[1] == "open" || os.Args[1] == "-open" || os.Args[1] == "--open")
 	if isOpenArg {
 		if runtime.GOOS == "darwin" {
-			exec.Command("osascript", "-e", `tell application "Terminal" to do script "cv-tui"`).Run()
-			fmt.Println("🚀 Launched cv-tui in interactive Terminal window!")
+			exec.Command("osascript", "-e", `tell application "Terminal" to activate`, "-e", `tell application "Terminal" to do script "cv-tui"`).Run()
+			fmt.Println("🚀 Launched cv-tui in active Terminal window!")
 			return
 		}
 	}
