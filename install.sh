@@ -111,6 +111,12 @@ if [ -d "$SKILL_SRC" ]; then
   mkdir -p "$HOME/.codex/skills/cv-optimizer"
   cp -r "$SKILL_SRC/"* "$HOME/.codex/skills/cv-optimizer/"
   echo -e "${GREEN}✓ Installed global skill to ~/.codex/skills/cv-optimizer${RESET}"
+
+  # OpenCode
+  mkdir -p "$HOME/.opencode/skills/cv-optimizer" "$HOME/.config/opencode/skills/cv-optimizer"
+  cp -r "$SKILL_SRC/"* "$HOME/.opencode/skills/cv-optimizer/"
+  cp -r "$SKILL_SRC/"* "$HOME/.config/opencode/skills/cv-optimizer/"
+  echo -e "${GREEN}✓ Installed global skill to ~/.opencode/skills/cv-optimizer${RESET}"
 fi
 
 # ─── Done Output ─────────────────────────────────────────────────────────────
