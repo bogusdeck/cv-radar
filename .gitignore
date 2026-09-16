@@ -1,6 +1,8 @@
 # Binaries
 cv-tui
+server
 server_bin
+tui
 *.exe
 
 # Build output

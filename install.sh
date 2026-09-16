@@ -1,33 +1,43 @@
 #!/bin/bash
 set -e
 
-# CV-RADAR Installer
+# CV-RADAR One-Line Installer & Setup Script
 # Usage: curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash
 # Or:    ./install.sh
 
 REPO="https://github.com/bogusdeck/cv-radar.git"
-INSTALL_DIR="${CV_RADAR_DIR:-./cv-radar}"
 BOLD="\033[1m"
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
 RED="\033[0;31m"
 RESET="\033[0m"
 
 echo ""
-echo -e "${BOLD}  ██████╗██╗   ██╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗${RESET}"
-echo -e "${BOLD} ██╔════╝██║   ██║      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗${RESET}"
-echo -e "${BOLD} ██║     ██║   ██║█████╗██████╔╝███████║██║  ██║███████║██████╔╝${RESET}"
-echo -e "${BOLD} ██║     ╚██╗ ██╔╝╚════╝██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗${RESET}"
-echo -e "${BOLD} ╚██████╗ ╚████╔╝       ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║${RESET}"
-echo -e "${BOLD}  ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝${RESET}"
+echo -e "${BOLD}${BLUE}  ██████╗██╗   ██╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗${RESET}"
+echo -e "${BOLD}${BLUE} ██╔════╝██║   ██║      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗${RESET}"
+echo -e "${BOLD}${BLUE} ██║     ██║   ██║█████╗██████╔╝███████║██║  ██║███████║██████╔╝${RESET}"
+echo -e "${BOLD}${BLUE} ██║     ╚██╗ ██╔╝╚════╝██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗${RESET}"
+echo -e "${BOLD}${BLUE} ╚██████╗ ╚████╔╝       ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║${RESET}"
+echo -e "${BOLD}${BLUE}  ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═════╝${RESET}"
 echo ""
-echo -e "${BOLD}  ATS Resume Scanner & CV Optimizer${RESET}"
+echo -e "${BOLD}  ATS Resume Scanner & AI CV Optimizer Setup${RESET}"
 echo -e "  github.com/bogusdeck/cv-radar"
 echo ""
 
-# ─── Check dependencies ───────────────────────────────────────────────────────
+# ─── Detect Execution Context ─────────────────────────────────────────────────
 
-check() {
+if [ -f "./cmd/server/main.go" ]; then
+  INSTALL_DIR="$(pwd)"
+  IS_LOCAL_BUILD=1
+else
+  INSTALL_DIR="${CV_RADAR_DIR:-$HOME/.cv-radar}"
+  IS_LOCAL_BUILD=0
+fi
+
+# ─── Check Dependencies ───────────────────────────────────────────────────────
+
+check_dep() {
   if ! command -v "$1" &>/dev/null; then
     echo -e "${RED}✗ $1 not found.${RESET} $2"
     exit 1
@@ -37,10 +47,10 @@ check() {
 }
 
 echo -e "${BOLD}Checking dependencies...${RESET}"
-check "git"   "Install git: https://git-scm.com"
-check "go"    "Install Go 1.21+: https://go.dev/dl"
+check_dep "git" "Install git: https://git-scm.com"
+check_dep "go"  "Install Go 1.21+: https://go.dev/dl"
 
-# Tectonic (LaTeX compiler) — optional but needed for PDF compilation
+# Tectonic (LaTeX compiler)
 if ! command -v tectonic &>/dev/null; then
   echo -e "${YELLOW}⚠ tectonic not found — PDF compilation will be unavailable.${RESET}"
   echo -e "  Install: curl --proto '=https' --tlsv1.2 -fsSL https://drop.tectonic.typesetting.com/install.sh | sh"
@@ -49,84 +59,104 @@ else
   echo -e "${GREEN}✓ tectonic${RESET}"
 fi
 
-# Node (optional, for web UI)
+# Node (web UI)
 if ! command -v node &>/dev/null; then
   echo -e "${YELLOW}⚠ node not found — web UI will be unavailable.${RESET}"
   NODE_MISSING=1
 else
-  echo -e "${GREEN}✓ node$(node -v)${RESET}"
+  echo -e "${GREEN}✓ node $(node -v)${RESET}"
 fi
 
 echo ""
 
-# ─── Clone ────────────────────────────────────────────────────────────────────
+# ─── Clone or Update Repository ──────────────────────────────────────────────
 
-if [ -d "$INSTALL_DIR/.git" ]; then
-  echo -e "${BOLD}Updating existing installation...${RESET}"
-  git -C "$INSTALL_DIR" pull --ff-only
-else
-  echo -e "${BOLD}Cloning cv-radar into $INSTALL_DIR ...${RESET}"
-  git clone "$REPO" "$INSTALL_DIR"
+if [ "$IS_LOCAL_BUILD" -eq 0 ]; then
+  if [ -d "$INSTALL_DIR/.git" ]; then
+    echo -e "${BOLD}Updating existing installation in $INSTALL_DIR ...${RESET}"
+    git -C "$INSTALL_DIR" pull --ff-only
+  else
+    echo -e "${BOLD}Cloning cv-radar into $INSTALL_DIR ...${RESET}"
+    git clone "$REPO" "$INSTALL_DIR"
+  fi
+  cd "$INSTALL_DIR"
 fi
 
-cd "$INSTALL_DIR"
-echo ""
-
-# ─── Build Go API server ──────────────────────────────────────────────────────
+# ─── Build Binaries ──────────────────────────────────────────────────────────
 
 echo -e "${BOLD}Building Go API server...${RESET}"
 go build -o server ./cmd/server
 echo -e "${GREEN}✓ server binary built${RESET}"
 
-# ─── Build TUI dashboard ──────────────────────────────────────────────────────
-
 echo -e "${BOLD}Building TUI dashboard...${RESET}"
 go build -o cv-tui ./cmd/tui
 echo -e "${GREEN}✓ cv-tui binary built${RESET}"
 
-# ─── Build web UI ─────────────────────────────────────────────────────────────
-
-if [ -z "$NODE_MISSING" ]; then
-  echo -e "${BOLD}Installing web UI dependencies...${RESET}"
-  cd web && npm install --silent && npm run build && cd ..
+if [ -z "$NODE_MISSING" ] && [ -d "web" ]; then
+  echo -e "${BOLD}Building Web UI frontend...${RESET}"
+  (cd web && npm install --silent && npm run build)
   echo -e "${GREEN}✓ web UI built${RESET}"
 fi
 
-# ─── Make scripts executable ──────────────────────────────────────────────────
-
 chmod +x start.sh optimize.sh
 
-# ─── Done ─────────────────────────────────────────────────────────────────────
+# ─── Global CLI & Skill Setup ─────────────────────────────────────────────────
 
 echo ""
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${GREEN}${BOLD}  cv-radar installed successfully!${RESET}"
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${BOLD}Configuring global CLI & agent skills...${RESET}"
+
+# 1. Symlink binary to ~/.local/bin if available
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+ln -sf "$INSTALL_DIR/cv-tui" "$BIN_DIR/cv-tui"
+echo -e "${GREEN}✓ Symlinked binary to $BIN_DIR/cv-tui${RESET}"
+
+# 2. Global AI Agent Skill Registration
+SKILL_SRC="$INSTALL_DIR/.agents/skills/cv-optimizer"
+
+if [ -d "$SKILL_SRC" ]; then
+  # Antigravity / Open Agent standard
+  mkdir -p "$HOME/.agents/skills/cv-optimizer"
+  cp -r "$SKILL_SRC/"* "$HOME/.agents/skills/cv-optimizer/"
+  echo -e "${GREEN}✓ Installed global skill to ~/.agents/skills/cv-optimizer${RESET}"
+
+  # Claude Code
+  mkdir -p "$HOME/.claude/skills/cv-optimizer"
+  cp -r "$SKILL_SRC/"* "$HOME/.claude/skills/cv-optimizer/"
+  echo -e "${GREEN}✓ Installed global skill to ~/.claude/skills/cv-optimizer${RESET}"
+
+  # Codex
+  mkdir -p "$HOME/.codex/skills/cv-optimizer"
+  cp -r "$SKILL_SRC/"* "$HOME/.codex/skills/cv-optimizer/"
+  echo -e "${GREEN}✓ Installed global skill to ~/.codex/skills/cv-optimizer${RESET}"
+fi
+
+# ─── Done Output ─────────────────────────────────────────────────────────────
+
 echo ""
-echo -e "${BOLD}Next steps:${RESET}"
+echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${GREEN}${BOLD}   🎉 CV-RADAR & CV-OPTIMIZER setup completed!${RESET}"
+echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
-echo -e "  1. Add your CV and Job Description:"
-echo -e "     cp your_cv.tex ${INSTALL_DIR}/cv.tex"
-echo -e "     cp your_jd.txt ${INSTALL_DIR}/jd.txt"
+echo -e "${BOLD}🚀 How to use:${RESET}"
 echo ""
-echo -e "  2. Launch the TUI dashboard:"
-echo -e "     cd ${INSTALL_DIR} && ./cv-tui"
+echo -e "  ${BOLD}1. Global AI CLI Skill (Any folder!):${RESET}"
+echo -e "     Open your AI CLI in any project folder:"
+echo -e "       ${BLUE}agy${RESET} | ${BLUE}claude${RESET} | ${BLUE}opencode${RESET} | ${BLUE}codex${RESET}"
+echo -e "     Then type:"
+echo -e "       ${BOLD}/cv-optimizer${RESET}"
 echo ""
-echo -e "  3. Start the full web stack:"
-echo -e "     cd ${INSTALL_DIR} && ./start.sh"
+echo -e "  ${BOLD}2. Terminal UI (TUI):${RESET}"
+echo -e "     Run from anywhere:"
+echo -e "       ${BLUE}cv-tui${RESET}"
 echo ""
-echo -e "  4. Run headless AI optimization (Claude, Antigravity, or OpenCode):"
-echo -e "     ./optimize.sh cv.tex jd.txt Workday claude"
-echo ""
-echo -e "  5. Or open in your AI coding CLI:"
-echo -e "     cd ${INSTALL_DIR} && claude   # Claude Code"
-echo -e "     cd ${INSTALL_DIR} && agy      # Antigravity"
-echo -e "     cd ${INSTALL_DIR} && opencode # OpenCode"
-echo -e "     Then say: /cv-optimizer"
+echo -e "  ${BOLD}3. Web App Dashboard:${RESET}"
+echo -e "     Start full stack:"
+echo -e "       ${BLUE}cd $INSTALL_DIR && ./start.sh${RESET}"
 echo ""
 
 if [ -n "$TECTONIC_MISSING" ]; then
-  echo -e "${YELLOW}  ⚠ Install tectonic for PDF compilation:${RESET}"
-  echo -e "    curl --proto '=https' --tlsv1.2 -fsSL https://drop.tectonic.typesetting.com/install.sh | sh"
+  echo -e "${YELLOW}⚠ Note: Install tectonic for automated PDF rendering:${RESET}"
+  echo -e "  curl --proto '=https' --tlsv1.2 -fsSL https://drop.tectonic.typesetting.com/install.sh | sh"
   echo ""
 fi
