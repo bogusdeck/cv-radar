@@ -81,6 +81,9 @@ elif [ "$AI_TOOL" = "agy" ] || [ "$AI_TOOL" = "antigravity" ]; then
 elif [ "$AI_TOOL" = "opencode" ]; then
     # OpenCode headless execution
     echo "$PROMPT" | opencode run > optimized_cv.md
+elif [ "$AI_TOOL" = "codex" ]; then
+    # Codex headless execution
+    echo "$PROMPT" | codex exec > optimized_cv.md
 else
     echo "Unsupported AI tool: $AI_TOOL"
     exit 1

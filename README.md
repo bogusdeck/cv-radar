@@ -131,6 +131,9 @@ cv-tui
 
 # Using OpenCode
 ./optimize.sh cv.tex jd.txt Workday opencode
+
+# Using Codex
+./optimize.sh cv.tex jd.txt Workday codex
 ```
 
 The optimized LaTeX is saved to `optimized_cv.md`, ready to compile via `tectonic`.
