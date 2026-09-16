@@ -4,200 +4,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CV-RADAR - ATS Resume Scanner & AI CV Optimizer</title>
+  <title>CV-RADAR — ATS Resume Scanner & AI CV Optimizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'void': '#0a0a0a',
+            'panel': '#141414',
+            'border-white': '#ffffff',
+            'accent-yellow': '#ffcc00',
+            'accent-green': '#33ff33'
+          },
+          fontFamily: {
+            'pixel': ['"Press Start 2P"', 'monospace'],
+            'sans': ['Inter', 'sans-serif'],
+            'code': ['"Fira Code"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    /* Base settings for pixelated canvas scaling */
+    .pixelated {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
     }
 
-    body {
-      background: #0a0a0a;
-      color: #fff;
-      font-family: 'Press Start 2P', cursive;
-      font-size: 12px;
-      line-height: 1.8;
-      min-height: 100vh;
-      padding-bottom: 4rem;
+    /* Scanline overlay for subtle monochrome texture */
+    .scanlines {
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.25) 50%,
+        rgba(0, 0, 0, 0.25)
+      );
+      background-size: 100% 6px;
+      pointer-events: none;
     }
 
-    .container {
-      max-width: 1050px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    /* Header & Navbar */
-    header {
-      border-bottom: 4px solid #fff;
-      background: #000;
-      padding: 1.2rem 0;
-      margin-bottom: 3rem;
-    }
-
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .logo {
-      color: #ffcc00;
-      text-shadow: 3px 3px 0 #000;
-      text-decoration: none;
-      font-size: 14px;
-      letter-spacing: 1px;
-    }
-
-    .nav-links a {
-      color: #fff;
-      text-decoration: none;
-      margin-left: 1.5rem;
-      font-size: 10px;
-      transition: color 0.1s;
-    }
-
-    .nav-links a:hover {
-      color: #ffcc00;
-    }
-
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      padding: 2rem 0 3rem 0;
-    }
-
-    .pixel-badge {
-      display: inline-block;
-      background: #ffcc00;
-      color: #000;
-      border: 3px solid #fff;
-      box-shadow: 4px 4px 0 #000;
-      padding: 6px 14px;
-      font-size: 9px;
-      margin-bottom: 1.5rem;
-    }
-
-    .ascii-banner {
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      line-height: 1.15;
-      color: #33ff33;
-      text-shadow: 0 0 5px rgba(51, 255, 51, 0.4);
-      margin-bottom: 1.5rem;
-      white-space: pre;
-      display: inline-block;
-      text-align: left;
-    }
-
-    h1 {
-      color: #ffcc00;
-      text-shadow: 4px 4px 0 #000;
-      font-size: 22px;
-      line-height: 1.5;
-      letter-spacing: 1px;
-      margin-bottom: 1.5rem;
-    }
-
-    .hero-subtitle {
-      font-size: 11px;
-      color: #aaa;
-      max-width: 800px;
-      margin: 0 auto 2.5rem auto;
-      line-height: 1.8;
-    }
-
-    /* Command Box */
-    .command-box {
-      background: #111;
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000;
-      padding: 1rem 1.2rem;
-      max-width: 780px;
-      margin: 0 auto 2.5rem auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
-    .command-text {
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-      color: #33ff33;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    /* Buttons */
-    .pixel-btn-yellow {
-      background: #ffcc00;
-      color: #000;
-      border: 3px solid #000;
-      box-shadow: 4px 4px 0 #fff;
-      font-family: 'Press Start 2P', cursive;
-      font-size: 10px;
-      padding: 10px 16px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: transform 0.1s;
-    }
-
-    .pixel-btn-yellow:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 #fff;
-    }
-
-    .pixel-btn-white {
-      background: #fff;
-      color: #000;
-      border: 3px solid #000;
-      box-shadow: 4px 4px 0 #ffcc00;
-      font-family: 'Press Start 2P', cursive;
-      font-size: 10px;
-      padding: 10px 16px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .cta-group {
-      display: flex;
-      gap: 1.2rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* Section Headers */
-    .section-title {
-      color: #ffcc00;
-      text-shadow: 4px 4px 0 #000;
-      font-size: 18px;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .section-subtitle {
-      font-size: 9px;
-      color: #888;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    /* Retro Font / Window Card */
+    /* Retro Pixel Window Card (matching portfolio design.html) */
     .font-card {
-      background: #1a1a1a;
+      background: #141414;
       border: 4px solid #fff;
       box-shadow: 6px 6px 0 #000;
-      padding: 28px 20px 20px 20px;
+      padding: 30px 20px 20px 20px;
       position: relative;
     }
 
@@ -236,308 +95,367 @@
       position: absolute;
       top: 6px;
       left: 54px;
-      font-size: 8px;
+      font-size: 9px;
       color: #888;
       z-index: 2;
+      font-family: 'Press Start 2P', monospace;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .card-icon {
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-
-    .card-h {
-      color: #ffcc00;
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
-    .card-p {
-      color: #ccc;
-      font-size: 9px;
-      line-height: 1.7;
-    }
-
-    /* Tools List Window */
-    .tools-window {
-      background: #111;
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000;
-      padding: 30px 20px 20px 20px;
-      position: relative;
-      margin-bottom: 3rem;
-      text-align: center;
-    }
-
-    .tools-window::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 24px;
-      background: #000;
-      border-bottom: 4px solid #fff;
-    }
-
-    .tag-group {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.8rem;
-      margin-top: 1rem;
-    }
-
-    .tag {
-      background: #000;
-      border: 2px solid #ffcc00;
-      color: #ffcc00;
-      padding: 6px 12px;
-      font-size: 9px;
-    }
-
-    /* Table Window */
-    .table-window {
-      background: #1a1a1a;
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000;
-      padding: 30px 20px 20px 20px;
-      position: relative;
-      overflow-x: auto;
-    }
-
-    .table-window::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 24px;
-      background: #000;
-      border-bottom: 4px solid #fff;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 9px;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      text-align: left;
-      border-bottom: 2px solid #333;
-    }
-
-    th {
-      color: #ffcc00;
-      background: #000;
-    }
-
-    td strong {
-      color: #33ff33;
-    }
-
-    /* Footer */
-    footer {
-      margin-top: 4rem;
-      border-top: 4px solid #fff;
-      padding-top: 2rem;
-      text-align: center;
-      font-size: 9px;
-      color: #888;
-    }
-
-    footer a {
-      color: #ffcc00;
+    /* Pixel Buttons */
+    .btn-pixel-yellow {
+      background-color: #ffcc00;
+      color: #000000;
+      border: 4px solid #000000;
+      box-shadow: 4px 4px 0px #ffffff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
       text-decoration: none;
+      display: inline-block;
+      transition: transform 0.1s steps(2), box-shadow 0.1s steps(2);
     }
 
-    @media (max-width: 650px) {
-      .ascii-banner { display: none; }
-      h1 { font-size: 16px; }
-      .command-box { flex-direction: column; }
-      .command-text { font-size: 11px; }
+    .btn-pixel-yellow:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #ffffff;
+    }
+
+    .btn-pixel-white {
+      background-color: #ffffff;
+      color: #000000;
+      border: 4px solid #000000;
+      box-shadow: 4px 4px 0px #ffcc00;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .text-pixel-shadow {
+      text-shadow: 4px 4px 0px #000;
     }
   </style>
 </head>
 
-<body>
+<body class="bg-void text-white font-sans antialiased overflow-x-hidden selection:bg-white selection:text-black">
 
-  <header>
-    <div class="container">
-      <nav>
-        <a href="#" class="logo">CV-RADAR</a>
-        <div class="nav-links">
-          <a href="#features">FEATURES</a>
-          <a href="#platforms">ATS PLATFORMS</a>
-          <a href="https://github.com/bogusdeck/cv-radar" target="_blank">GITHUB REPO</a>
+  <!-- 1. Background Monochrome Dither Canvas (Fixed behind content) -->
+  <canvas id="dither-canvas" class="fixed inset-0 w-full h-full pixelated z-0"></canvas>
+  
+  <!-- 2. Scanline & Dark Overlay (Z-5) -->
+  <div class="scanlines fixed inset-0 w-full h-full z-5 opacity-40"></div>
+  <div class="fixed inset-0 w-full h-full z-5 bg-black/40 pointer-events-none"></div>
+
+  <!-- 3. Foreground Content (Z-10) -->
+  <div class="relative z-10 min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <header class="border-b-4 border-white bg-black/90 py-4 mb-8">
+      <div class="max-w-6xl mx-auto px-6 flex justify-between items-center flex-wrap gap-4">
+        <a href="#" class="font-pixel text-accent-yellow text-sm tracking-wider text-pixel-shadow">CV-RADAR</a>
+        <nav class="font-pixel text-[10px] space-x-6">
+          <a href="#features" class="hover:text-accent-yellow transition-colors">FEATURES</a>
+          <a href="#platforms" class="hover:text-accent-yellow transition-colors">ATS PLATFORMS</a>
+          <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="hover:text-accent-yellow transition-colors">GITHUB</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-6 flex-grow">
+
+      <!-- Hero Section -->
+      <section class="text-center py-10">
+        <div class="inline-block bg-accent-yellow text-black border-2 border-white px-3 py-1 font-pixel text-[9px] shadow-[4px_4px_0_#000] mb-6">
+          AGENT SKILL & CLI TOOL
         </div>
-      </nav>
-    </div>
-  </header>
 
-  <main class="container">
-
-    <!-- Hero -->
-    <section class="hero">
-      <div class="pixel-badge">AGENT SKILL & CLI TOOL</div>
-
-      <div>
-        <pre class="ascii-banner">
+        <!-- ASCII Banner -->
+        <div class="hidden md:block mb-6 overflow-x-auto">
+          <pre class="font-code text-[11px] leading-tight text-accent-green text-left inline-block drop-shadow-[0_0_8px_rgba(51,255,51,0.5)]">
   ██████╗██╗   ██╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗ 
  ██╔════╝██║   ██║      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗
  ██║     ██║   ██║█████╗██████╔╝███████║██║  ██║███████║██████╔╝
  ██║     ╚██╗ ██╔╝╚════╝██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗
  ╚██████╗ ╚████╔╝       ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║
   ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
-        </pre>
-      </div>
+          </pre>
+        </div>
 
-      <h1>ATS RESUME SCANNER & AI CV OPTIMIZER</h1>
-      <p class="hero-subtitle">
-        Score your CV against Job Descriptions, detect missing keywords, and automatically rewrite your resume for Workday, Taleo, Greenhouse, or iCIMS — right inside your AI coding CLI.
-      </p>
+        <h1 class="font-pixel text-xl md:text-3xl text-accent-yellow mb-6 text-pixel-shadow leading-relaxed">
+          ATS RESUME SCANNER & AI CV OPTIMIZER
+        </h1>
 
-      <div class="command-box">
-        <code class="command-text" id="cmd-text">curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash</code>
-        <button class="pixel-btn-yellow" onclick="copyCmd()">COPY</button>
-      </div>
+        <p class="font-sans text-gray-300 text-sm md:text-base max-w-3xl mx-auto mb-8 leading-relaxed drop-shadow">
+          Score your CV against Job Descriptions, detect missing keywords, and automatically rewrite your resume for Workday, Taleo, Greenhouse, or iCIMS — right inside your AI coding CLI.
+        </p>
 
-      <div class="cta-group">
-        <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="pixel-btn-yellow">VIEW ON GITHUB</a>
-        <a href="#features" class="pixel-btn-white">EXPLORE FEATURES</a>
-      </div>
-    </section>
+        <!-- Command Box -->
+        <div class="bg-black border-4 border-white shadow-[6px_6px_0_#000] p-4 max-w-3xl mx-auto mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <code class="font-code text-accent-green text-xs md:text-sm overflow-x-auto whitespace-nowrap" id="cmd-text">curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash</code>
+          <button class="btn-pixel-yellow flex-shrink-0" onclick="copyCmd()">COPY</button>
+        </div>
 
-    <!-- Features -->
-    <h2 id="features" class="section-title">SYSTEM FEATURES</h2>
-    <p class="section-subtitle">// Everything you need to pass ATS filters</p>
+        <div class="flex justify-center gap-4 flex-wrap">
+          <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="btn-pixel-yellow">VIEW ON GITHUB</a>
+          <a href="#features" class="btn-pixel-white">EXPLORE FEATURES</a>
+        </div>
+      </section>
 
-    <div class="grid">
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">ats_engine.go</div>
-        <div class="card-icon">🎯</div>
-        <div class="card-h">ATS SCORING ENGINE</div>
-        <div class="card-p">Go-powered scoring engine evaluating exact keyword matching, keyword density, role fit, and penalty checks for major ATS platforms.</div>
-      </div>
+      <!-- System Features -->
+      <section id="features" class="py-12">
+        <h2 class="font-pixel text-lg text-accent-yellow text-center text-pixel-shadow mb-2">SYSTEM FEATURES</h2>
+        <p class="font-pixel text-[9px] text-gray-400 text-center mb-10">// Everything required to pass ATS filters</p>
 
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">keyword_audit.go</div>
-        <div class="card-icon">🔍</div>
-        <div class="card-h">MISSING KEYWORD AUDIT</div>
-        <div class="card-p">Scans Job Descriptions and pinpoints every required skill, tool, and qualification omitted from your resume.</div>
-      </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">ats_engine.go</div>
+            <div class="text-3xl mb-3">🎯</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">ATS SCORING ENGINE</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Go-powered scoring engine evaluating exact keyword matching, keyword density, role fit, and penalty checks for major ATS platforms.</p>
+          </div>
 
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">cv-tui dashboard</div>
-        <div class="card-icon">🖥️</div>
-        <div class="card-h">TERMINAL UI DASHBOARD</div>
-        <div class="card-p">Interactive <code>cv-tui</code> dashboard built with Go & Bubble Tea for live platform scoring, grade calculation (A-F), and recommendations.</div>
-      </div>
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">keyword_audit.go</div>
+            <div class="text-3xl mb-3">🔍</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">MISSING KEYWORD AUDIT</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Scans Job Descriptions and pinpoints every required skill, tool, and qualification omitted from your resume.</p>
+          </div>
 
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">skill registration</div>
-        <div class="card-icon">🤖</div>
-        <div class="card-h">UNIVERSAL AI SKILL</div>
-        <div class="card-p">Auto-discovered skill for <strong>Antigravity</strong> (<code>agy</code>), <strong>Claude Code</strong> (<code>claude</code>), <strong>Codex</strong>, and <strong>OpenCode</strong>. Just say <code>/cv-optimizer</code>.</div>
-      </div>
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">cv-tui dashboard</div>
+            <div class="text-3xl mb-3">🖥️</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">TERMINAL UI DASHBOARD</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Interactive <code>cv-tui</code> dashboard built with Go & Bubble Tea for live platform scoring, grade calculation (A-F), and missing keyword lists.</p>
+          </div>
 
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">optimize.sh</div>
-        <div class="card-icon">⚡</div>
-        <div class="card-h">HEADLESS AI REWRITER</div>
-        <div class="card-p">Background execution script (<code>optimize.sh</code>) that orchestrates LLMs to rewrite your CV content without manual copy-pasting.</div>
-      </div>
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">skill registration</div>
+            <div class="text-3xl mb-3">🤖</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">UNIVERSAL AI SKILL</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Auto-discovered skill for <strong>Antigravity</strong> (<code>agy</code>), <strong>Claude Code</strong> (<code>claude</code>), <strong>Codex</strong>, and <strong>OpenCode</strong>. Just say <code>/cv-optimizer</code>.</p>
+          </div>
 
-      <div class="font-card">
-        <div class="window-dots"><span></span><span></span><span></span></div>
-        <div class="window-title">tectonic compiler</div>
-        <div class="card-icon">📄</div>
-        <div class="card-h">TECTONIC PDF COMPILER</div>
-        <div class="card-p">Compiles optimized LaTeX code directly into clean, production-grade PDF resumes ready for job applications.</div>
-      </div>
-    </div>
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">optimize.sh</div>
+            <div class="text-3xl mb-3">⚡</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">HEADLESS AI REWRITER</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Background execution script (<code>optimize.sh</code>) that orchestrates LLMs to rewrite your CV content without manual copy-pasting.</p>
+          </div>
 
-    <!-- Supported Tools Banner -->
-    <div class="tools-window">
-      <div class="window-dots"><span></span><span></span><span></span></div>
-      <div class="window-title">agent_integrations</div>
-      <div class="card-h" style="font-size: 13px; margin-top: 6px;">SUPPORTED AI CODING CLIs</div>
-      <div class="tag-group">
-        <span class="tag">agy (Antigravity)</span>
-        <span class="tag">claude (Claude Code)</span>
-        <span class="tag">codex (Codex)</span>
-        <span class="tag">opencode (OpenCode)</span>
-        <span class="tag">cv-tui (Standalone CLI)</span>
-      </div>
-    </div>
+          <div class="font-card">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="window-title">tectonic compiler</div>
+            <div class="text-3xl mb-3">📄</div>
+            <h3 class="font-pixel text-accent-yellow text-xs mb-2">TECTONIC PDF COMPILER</h3>
+            <p class="font-sans text-gray-300 text-xs leading-relaxed">Compiles optimized LaTeX code directly into clean, production-grade PDF resumes ready for job applications.</p>
+          </div>
 
-    <!-- Platforms Table -->
-    <h2 id="platforms" class="section-title">ATS PLATFORM STRATEGIES</h2>
-    <p class="section-subtitle">// Tailored optimization profiles per ATS vendor</p>
+        </div>
+      </section>
 
-    <div class="table-window">
-      <div class="window-dots"><span></span><span></span><span></span></div>
-      <div class="window-title">ats_strategies.json</div>
-      <table>
-        <thead>
-          <tr>
-            <th>PLATFORM</th>
-            <th>SCORING STRATEGY</th>
-            <th>KEY FOCUS</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>WORKDAY</strong></td>
-            <td>Strict exact-keyword matching</td>
-            <td>Requires precise terminology from the JD. Heavy penalties for missing skills.</td>
-          </tr>
-          <tr>
-            <td><strong>TALEO</strong></td>
-            <td>Keyword density scoring</td>
-            <td>Boosts scores when critical JD keywords are repeated across summary and experience points.</td>
-          </tr>
-          <tr>
-            <td><strong>GREENHOUSE</strong></td>
-            <td>Semantic AI + human reviewer fit</td>
-            <td>Focuses on natural phrasing, contextual impact, and measurable achievements.</td>
-          </tr>
-          <tr>
-            <td><strong>iCIMS</strong></td>
-            <td>Mixed exact + semantic match</td>
-            <td>Primary weight on job title alignment, structural cleanliness, and date formats.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Supported AI Coding CLIs Window -->
+      <section class="py-6">
+        <div class="font-card text-center py-8">
+          <div class="window-dots"><span></span><span></span><span></span></div>
+          <div class="window-title">agent_integrations</div>
+          <h3 class="font-pixel text-accent-yellow text-xs mb-4">SUPPORTED AI CODING CLIs</h3>
+          <div class="flex flex-wrap justify-center gap-3">
+            <span class="font-code text-xs bg-black border-2 border-accent-yellow text-accent-yellow px-3 py-1 shadow-[2px_2px_0_#000]">agy (Antigravity)</span>
+            <span class="font-code text-xs bg-black border-2 border-accent-yellow text-accent-yellow px-3 py-1 shadow-[2px_2px_0_#000]">claude (Claude Code)</span>
+            <span class="font-code text-xs bg-black border-2 border-accent-yellow text-accent-yellow px-3 py-1 shadow-[2px_2px_0_#000]">codex (Codex)</span>
+            <span class="font-code text-xs bg-black border-2 border-accent-yellow text-accent-yellow px-3 py-1 shadow-[2px_2px_0_#000]">opencode (OpenCode)</span>
+            <span class="font-code text-xs bg-black border-2 border-accent-yellow text-accent-yellow px-3 py-1 shadow-[2px_2px_0_#000]">cv-tui (Standalone CLI)</span>
+          </div>
+        </div>
+      </section>
 
-  </main>
+      <!-- ATS Strategies Matrix Table -->
+      <section id="platforms" class="py-12">
+        <h2 class="font-pixel text-lg text-accent-yellow text-center text-pixel-shadow mb-2">ATS PLATFORM STRATEGIES</h2>
+        <p class="font-pixel text-[9px] text-gray-400 text-center mb-10">// Tailored optimization profiles per ATS vendor</p>
 
-  <footer>
-    <div class="container">
-      <p>CV-RADAR is open source under MIT License. Built by <a href="https://github.com/bogusdeck" target="_blank">Tanish Vashisth (bogusdeck)</a>.</p>
-    </div>
-  </footer>
+        <div class="font-card overflow-x-auto">
+          <div class="window-dots"><span></span><span></span><span></span></div>
+          <div class="window-title">ats_strategies.json</div>
+          <table class="w-full text-left font-sans text-xs">
+            <thead>
+              <tr class="border-b-2 border-gray-700 bg-black/60 font-pixel text-[9px] text-accent-yellow">
+                <th class="p-3">PLATFORM</th>
+                <th class="p-3">SCORING STRATEGY</th>
+                <th class="p-3">KEY FOCUS</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr>
+                <td class="p-3 font-pixel text-accent-green text-[10px]">WORKDAY</td>
+                <td class="p-3 text-gray-300">Strict exact-keyword matching</td>
+                <td class="p-3 text-gray-400">Requires precise terminology from the JD. Heavy penalties for missing skills.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-pixel text-accent-green text-[10px]">TALEO</td>
+                <td class="p-3 text-gray-300">Keyword density scoring</td>
+                <td class="p-3 text-gray-400">Boosts scores when critical JD keywords are repeated across summary and experience points.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-pixel text-accent-green text-[10px]">GREENHOUSE</td>
+                <td class="p-3 text-gray-300">Semantic AI + human reviewer fit</td>
+                <td class="p-3 text-gray-400">Focuses on natural phrasing, contextual impact, and measurable achievements.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-pixel text-accent-green text-[10px]">iCIMS</td>
+                <td class="p-3 text-gray-300">Mixed exact + semantic match</td>
+                <td class="p-3 text-gray-400">Primary weight on job title alignment, structural cleanliness, and date formats.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t-4 border-white py-6 bg-black/90 text-center font-pixel text-[9px] text-gray-400">
+      <p>CV-RADAR is open source under MIT License. Built by <a href="https://github.com/bogusdeck" target="_blank" class="text-accent-yellow hover:underline">Tanish Vashisth (bogusdeck)</a>.</p>
+    </footer>
+
+  </div>
+
+  <!-- MONOCHROME ORDERED DITHER CANVAS SCRIPT -->
   <script>
+    const canvas = document.getElementById('dither-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    // Size of the pixel chunks
+    const PIXEL_SCALE = 6; 
+
+    // MONOCHROME PALETTE: Darkest void (0) to bright silver/white (3)
+    const PALETTE = [
+      [10, 10, 10],     // 0: Void (Black)
+      [35, 35, 35],     // 1: Dark Grey
+      [85, 85, 85],     // 2: Medium Grey
+      [200, 200, 200]   // 3: Bright Monochrome White
+    ];
+
+    // 4x4 Bayer Matrix
+    const bayerMatrix = [
+       0,  8,  2, 10,
+      12,  4, 14,  6,
+       3, 11,  1,  9,
+      15,  7, 13,  5
+    ].map(v => (v / 16) - 0.5);
+
+    const DITHER_SPREAD = 0.85; 
+
+    let time = 0;
+    let animationFrameId;
+    let canvasWidth, canvasHeight;
+    let imgData;
+    let isVisible = true;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function resizeCanvas() {
+      canvasWidth = Math.max(1, Math.ceil(window.innerWidth / PIXEL_SCALE));
+      canvasHeight = Math.max(1, Math.ceil(window.innerHeight / PIXEL_SCALE));
+      
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      
+      imgData = ctx.createImageData(canvasWidth, canvasHeight);
+      
+      if (prefersReducedMotion.matches) {
+        renderFrame(0); 
+      }
+    }
+
+    function getFieldValue(x, y, t) {
+      let nx = x / canvasWidth;
+      let ny = y / canvasHeight;
+
+      let wave1 = Math.sin((nx * 3) + t);
+      let wave2 = Math.cos((ny * 3) + (t * 0.8));
+      let wave3 = Math.sin((nx + ny) * 2 - (t * 1.2));
+      
+      let value = (wave1 + wave2 + wave3) / 4.5 + 0.5;
+      value -= ny * 0.3;
+
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function renderFrame(t) {
+      const data = imgData.data;
+      const maxColorIndex = PALETTE.length - 1;
+
+      for (let y = 0; y < canvasHeight; y++) {
+        for (let x = 0; x < canvasWidth; x++) {
+          let val = getFieldValue(x, y, t);
+          let bayerValue = bayerMatrix[(y % 4) * 4 + (x % 4)];
+          let adjustedVal = val + (bayerValue * DITHER_SPREAD);
+
+          let colorIndex = Math.round(adjustedVal * maxColorIndex);
+          colorIndex = Math.max(0, Math.min(maxColorIndex, colorIndex));
+
+          let c = PALETTE[colorIndex];
+          let idx = (y * canvasWidth + x) * 4;
+          data[idx] = c[0];     
+          data[idx+1] = c[1];   
+          data[idx+2] = c[2];   
+          data[idx+3] = 255;    
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function animate() {
+      if (!isVisible || prefersReducedMotion.matches) return;
+      
+      time += 0.02; 
+      renderFrame(time);
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    document.addEventListener('visibilitychange', () => {
+      isVisible = !document.hidden;
+      if (isVisible && !prefersReducedMotion.matches) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationFrameId);
+      }
+    });
+
+    prefersReducedMotion.addEventListener('change', (e) => {
+      if (e.matches) {
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        animate();
+      }
+    });
+
+    resizeCanvas();
+    
+    if (!prefersReducedMotion.matches) {
+      animate();
+    } else {
+      renderFrame(5); 
+    }
+
     function copyCmd() {
       const cmdText = document.getElementById('cmd-text').innerText;
       navigator.clipboard.writeText(cmdText);
-      const btn = document.querySelector('.pixel-btn-yellow');
+      const btn = document.querySelector('.btn-pixel-yellow');
       btn.innerText = 'COPIED!';
       setTimeout(() => {
         btn.innerText = 'COPY';
