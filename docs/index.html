@@ -1,88 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CV-RADAR 👾 ATS Resume Scanner & AI CV Optimizer</title>
-  <meta name="description" content="Score your CV against job descriptions, find missing keywords, and auto-rewrite it for Workday, Taleo, Greenhouse, or iCIMS headlessly inside your AI coding CLI.">
+  <title>CV-RADAR - ATS Resume Scanner & AI CV Optimizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #0c0a14;
-      --panel: #141124;
-      --border: #3b2d54;
-      --neon-pink: #ff2a85;
-      --neon-cyan: #00f0ff;
-      --neon-yellow: #ffe600;
-      --neon-green: #39ff14;
-      --neon-purple: #9d4edd;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-    }
-
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      image-rendering: pixelated;
+      box-sizing: border-box;
     }
 
     body {
-      font-family: 'VT323', monospace;
-      font-size: 1.25rem;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      position: relative;
-      overflow-x: hidden;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 12px;
+      line-height: 1.8;
+      min-height: 100vh;
       padding-bottom: 4rem;
     }
 
-    /* CRT Scanline Overlay Effect */
-    body::before {
-      content: " ";
-      display: block;
-      position: fixed;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-      z-index: 99;
-      background-size: 100% 4px, 6px 100%;
-      pointer-events: none;
-    }
-
     .container {
-      max-width: 1000px;
+      max-width: 1050px;
       margin: 0 auto;
       padding: 0 1.5rem;
-      position: relative;
-      z-index: 10;
     }
 
-    /* Pixel Art Border Utility */
-    .pixel-box {
-      background-color: var(--panel);
-      border: 4px solid #000;
-      outline: 3px solid var(--border);
-      box-shadow: 6px 6px 0px #000;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      position: relative;
-    }
-
-    .pixel-box-neon {
-      outline-color: var(--neon-purple);
-      box-shadow: 6px 6px 0px var(--neon-pink);
-    }
-
-    /* Header & Nav */
+    /* Header & Navbar */
     header {
-      padding: 1.5rem 0;
-      border-bottom: 4px solid var(--border);
-      margin-bottom: 2rem;
-      background: rgba(20, 17, 36, 0.8);
-      backdrop-filter: blur(4px);
+      border-bottom: 4px solid #fff;
+      background: #000;
+      padding: 1.2rem 0;
+      margin-bottom: 3rem;
     }
 
     nav {
@@ -94,52 +48,48 @@
     }
 
     .logo {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 1.1rem;
-      color: var(--neon-cyan);
+      color: #ffcc00;
+      text-shadow: 3px 3px 0 #000;
       text-decoration: none;
-      text-shadow: 2px 2px 0px var(--neon-pink);
-      letter-spacing: -1px;
+      font-size: 14px;
+      letter-spacing: 1px;
     }
 
     .nav-links a {
-      font-family: 'Silkscreen', monospace;
-      color: var(--text);
+      color: #fff;
       text-decoration: none;
-      margin-left: 1.2rem;
-      font-size: 0.95rem;
+      margin-left: 1.5rem;
+      font-size: 10px;
       transition: color 0.1s;
     }
 
     .nav-links a:hover {
-      color: var(--neon-yellow);
-      text-shadow: 0 0 8px var(--neon-yellow);
+      color: #ffcc00;
     }
 
-    /* Hero Banner */
+    /* Hero Section */
     .hero {
       text-align: center;
-      padding: 2.5rem 1rem 3rem 1rem;
+      padding: 2rem 0 3rem 0;
     }
 
     .pixel-badge {
       display: inline-block;
-      font-family: 'Silkscreen', monospace;
-      font-size: 0.85rem;
-      background: var(--neon-pink);
+      background: #ffcc00;
       color: #000;
-      padding: 0.4rem 1rem;
+      border: 3px solid #fff;
+      box-shadow: 4px 4px 0 #000;
+      padding: 6px 14px;
+      font-size: 9px;
       margin-bottom: 1.5rem;
-      box-shadow: 3px 3px 0px #000;
-      font-weight: 700;
     }
 
-    .ascii-title {
+    .ascii-banner {
       font-family: 'Fira Code', monospace;
-      font-size: 0.75rem;
+      font-size: 11px;
       line-height: 1.15;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+      color: #33ff33;
+      text-shadow: 0 0 5px rgba(51, 255, 51, 0.4);
       margin-bottom: 1.5rem;
       white-space: pre;
       display: inline-block;
@@ -147,230 +97,284 @@
     }
 
     h1 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 1.6rem;
-      line-height: 1.4;
-      color: #fff;
-      text-shadow: 3px 3px 0px var(--neon-purple);
+      color: #ffcc00;
+      text-shadow: 4px 4px 0 #000;
+      font-size: 22px;
+      line-height: 1.5;
+      letter-spacing: 1px;
       margin-bottom: 1.5rem;
     }
 
     .hero-subtitle {
-      font-size: 1.5rem;
-      color: var(--muted);
-      max-width: 780px;
-      margin: 0 auto 2rem auto;
+      font-size: 11px;
+      color: #aaa;
+      max-width: 800px;
+      margin: 0 auto 2.5rem auto;
+      line-height: 1.8;
     }
 
-    /* Command Installer Box */
-    .install-box {
-      background-color: #000;
-      border: 3px solid var(--neon-cyan);
-      box-shadow: 5px 5px 0px var(--neon-pink);
+    /* Command Box */
+    .command-box {
+      background: #111;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000;
       padding: 1rem 1.2rem;
-      max-width: 750px;
-      margin: 0 auto 2rem auto;
+      max-width: 780px;
+      margin: 0 auto 2.5rem auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
     }
 
-    .install-code {
+    .command-text {
       font-family: 'Fira Code', monospace;
-      font-size: 1rem;
-      color: var(--neon-green);
+      font-size: 13px;
+      color: #33ff33;
       overflow-x: auto;
       white-space: nowrap;
     }
 
-    .pixel-btn {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.75rem;
-      padding: 0.75rem 1.2rem;
-      background: var(--neon-yellow);
+    /* Buttons */
+    .pixel-btn-yellow {
+      background: #ffcc00;
       color: #000;
       border: 3px solid #000;
-      box-shadow: 4px 4px 0px #000;
+      box-shadow: 4px 4px 0 #fff;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 10px;
+      padding: 10px 16px;
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: transform 0.1s, box-shadow 0.1s;
+      transition: transform 0.1s;
     }
 
-    .pixel-btn:active {
+    .pixel-btn-yellow:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px #000;
+      box-shadow: 2px 2px 0 #fff;
     }
 
-    .pixel-btn-pink {
-      background: var(--neon-pink);
-      color: #fff;
-      text-shadow: 1px 1px 0px #000;
-    }
-
-    .pixel-btn-cyan {
-      background: var(--neon-cyan);
+    .pixel-btn-white {
+      background: #fff;
       color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #ffcc00;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
 
     .cta-group {
       display: flex;
-      gap: 1rem;
+      gap: 1.2rem;
       justify-content: center;
       flex-wrap: wrap;
     }
 
-    /* Features Grid */
-    .section-header {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 1.3rem;
-      color: var(--neon-yellow);
-      text-shadow: 3px 3px 0px #000;
+    /* Section Headers */
+    .section-title {
+      color: #ffcc00;
+      text-shadow: 4px 4px 0 #000;
+      font-size: 18px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
       text-align: center;
-      margin: 3rem 0 2rem 0;
+    }
+
+    .section-subtitle {
+      font-size: 9px;
+      color: #888;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    /* Retro Font / Window Card */
+    .font-card {
+      background: #1a1a1a;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000;
+      padding: 28px 20px 20px 20px;
+      position: relative;
+    }
+
+    .font-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: #000;
+      border-bottom: 4px solid #fff;
+    }
+
+    .font-card .window-dots {
+      position: absolute;
+      top: 7px;
+      left: 8px;
+      display: flex;
+      gap: 5px;
+      z-index: 2;
+    }
+
+    .font-card .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: block;
+    }
+
+    .font-card .window-dots span:nth-child(1) { background: #ff5f56; }
+    .font-card .window-dots span:nth-child(2) { background: #ffbd2e; }
+    .font-card .window-dots span:nth-child(3) { background: #27c93f; }
+
+    .font-card .window-title {
+      position: absolute;
+      top: 6px;
+      left: 54px;
+      font-size: 8px;
+      color: #888;
+      z-index: 2;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: 1.5rem;
-    }
-
-    .feature-card {
-      background: var(--panel);
-      border: 3px solid #000;
-      outline: 3px solid var(--border);
-      box-shadow: 5px 5px 0px #000;
-      padding: 1.5rem;
-      transition: outline-color 0.2s;
-    }
-
-    .feature-card:hover {
-      outline-color: var(--neon-cyan);
+      margin-bottom: 3rem;
     }
 
     .card-icon {
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
+      font-size: 24px;
+      margin-bottom: 12px;
     }
 
-    .card-title {
-      font-family: 'Silkscreen', monospace;
-      font-size: 1.15rem;
-      color: var(--neon-pink);
-      margin-bottom: 0.5rem;
+    .card-h {
+      color: #ffcc00;
+      font-size: 11px;
+      margin-bottom: 10px;
     }
 
-    .card-desc {
-      font-size: 1.2rem;
-      color: var(--text);
+    .card-p {
+      color: #ccc;
+      font-size: 9px;
+      line-height: 1.7;
     }
 
-    /* Supported Tools Banner */
-    .tools-banner {
-      background: #000;
-      border: 3px solid var(--neon-purple);
-      box-shadow: 6px 6px 0px var(--neon-cyan);
-      padding: 2rem 1.5rem;
+    /* Tools List Window */
+    .tools-window {
+      background: #111;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000;
+      padding: 30px 20px 20px 20px;
+      position: relative;
+      margin-bottom: 3rem;
       text-align: center;
-      margin: 3.5rem 0;
     }
 
-    .tools-banner h3 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 1.1rem;
-      color: #fff;
-      margin-bottom: 1.5rem;
+    .tools-window::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: #000;
+      border-bottom: 4px solid #fff;
     }
 
-    .tool-tags {
+    .tag-group {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 1rem;
+      gap: 0.8rem;
+      margin-top: 1rem;
     }
 
-    .tool-tag {
-      font-family: 'Fira Code', monospace;
-      font-size: 1rem;
-      background: var(--panel);
-      border: 2px solid var(--neon-green);
-      color: var(--neon-green);
-      padding: 0.4rem 1rem;
-      box-shadow: 3px 3px 0px #000;
+    .tag {
+      background: #000;
+      border: 2px solid #ffcc00;
+      color: #ffcc00;
+      padding: 6px 12px;
+      font-size: 9px;
     }
 
-    /* Table Section */
-    .table-box {
+    /* Table Window */
+    .table-window {
+      background: #1a1a1a;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000;
+      padding: 30px 20px 20px 20px;
+      position: relative;
       overflow-x: auto;
+    }
+
+    .table-window::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: #000;
+      border-bottom: 4px solid #fff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 1.25rem;
+      font-size: 9px;
     }
 
     th, td {
-      padding: 0.9rem 1.2rem;
+      padding: 12px 14px;
       text-align: left;
-      border-bottom: 2px solid var(--border);
+      border-bottom: 2px solid #333;
     }
 
     th {
-      font-family: 'Silkscreen', monospace;
-      font-size: 1rem;
-      color: var(--neon-yellow);
-      background: rgba(0, 0, 0, 0.4);
+      color: #ffcc00;
+      background: #000;
     }
 
     td strong {
-      color: var(--neon-cyan);
-      font-family: 'Silkscreen', monospace;
+      color: #33ff33;
     }
 
     /* Footer */
     footer {
       margin-top: 4rem;
-      text-align: center;
+      border-top: 4px solid #fff;
       padding-top: 2rem;
-      border-top: 4px solid var(--border);
-      font-size: 1.25rem;
+      text-align: center;
+      font-size: 9px;
+      color: #888;
     }
 
     footer a {
-      color: var(--neon-pink);
+      color: #ffcc00;
       text-decoration: none;
-      font-family: 'Silkscreen', monospace;
     }
 
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 600px) {
-      .ascii-title {
-        display: none;
-      }
-      h1 {
-        font-size: 1.2rem;
-      }
-      .install-box {
-        flex-direction: column;
-      }
-      .install-code {
-        font-size: 0.85rem;
-      }
+    @media (max-width: 650px) {
+      .ascii-banner { display: none; }
+      h1 { font-size: 16px; }
+      .command-box { flex-direction: column; }
+      .command-text { font-size: 11px; }
     }
   </style>
 </head>
+
 <body>
 
   <header>
     <div class="container">
       <nav>
-        <a href="#" class="logo">👾 CV-RADAR</a>
+        <a href="#" class="logo">CV-RADAR</a>
         <div class="nav-links">
           <a href="#features">FEATURES</a>
           <a href="#platforms">ATS PLATFORMS</a>
@@ -381,17 +385,19 @@
   </header>
 
   <main class="container">
+
+    <!-- Hero -->
     <section class="hero">
-      <div class="pixel-badge">🎮 AGENT SKILL & CLI TOOL</div>
+      <div class="pixel-badge">AGENT SKILL & CLI TOOL</div>
 
       <div>
-        <pre class="ascii-title">
+        <pre class="ascii-banner">
   ██████╗██╗   ██╗      ██████╗  █████╗ ██████╗  █████╗ ██████╗ 
  ██╔════╝██║   ██║      ██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗
  ██║     ██║   ██║█████╗██████╔╝███████║██║  ██║███████║██████╔╝
  ██║     ╚██╗ ██╔╝╚════╝██╔══██╗██╔══██║██║  ██║██╔══██║██╔══██╗
  ╚██████╗ ╚████╔╝       ██║  ██║██║  ██║██████╔╝██║  ██║██║  ██║
-  ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═════╝ 
+  ╚═════╝  ╚═══╝        ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
         </pre>
       </div>
 
@@ -400,71 +406,92 @@
         Score your CV against Job Descriptions, detect missing keywords, and automatically rewrite your resume for Workday, Taleo, Greenhouse, or iCIMS — right inside your AI coding CLI.
       </p>
 
-      <div class="install-box">
-        <code class="install-code" id="cmd-text">curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash</code>
-        <button class="pixel-btn" onclick="copyCmd()">COPY COMMAND</button>
+      <div class="command-box">
+        <code class="command-text" id="cmd-text">curl -fsSL https://raw.githubusercontent.com/bogusdeck/cv-radar/main/install.sh | bash</code>
+        <button class="pixel-btn-yellow" onclick="copyCmd()">COPY</button>
       </div>
 
       <div class="cta-group">
-        <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="pixel-btn pixel-btn-pink">VIEW ON GITHUB</a>
-        <a href="#features" class="pixel-btn pixel-btn-cyan">EXPLORE FEATURES</a>
+        <a href="https://github.com/bogusdeck/cv-radar" target="_blank" class="pixel-btn-yellow">VIEW ON GITHUB</a>
+        <a href="#features" class="pixel-btn-white">EXPLORE FEATURES</a>
       </div>
     </section>
 
-    <h2 id="features" class="section-header">⚡ SYSTEM FEATURES</h2>
-    
+    <!-- Features -->
+    <h2 id="features" class="section-title">SYSTEM FEATURES</h2>
+    <p class="section-subtitle">// Everything you need to pass ATS filters</p>
+
     <div class="grid">
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">ats_engine.go</div>
         <div class="card-icon">🎯</div>
-        <div class="card-title">ATS SCORING ENGINE</div>
-        <div class="card-desc">Go-powered scoring engine evaluating exact keyword matching, keyword density, role fit, and penalty checks for major ATS platforms.</div>
+        <div class="card-h">ATS SCORING ENGINE</div>
+        <div class="card-p">Go-powered scoring engine evaluating exact keyword matching, keyword density, role fit, and penalty checks for major ATS platforms.</div>
       </div>
 
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">keyword_audit.go</div>
         <div class="card-icon">🔍</div>
-        <div class="card-title">MISSING KEYWORD AUDIT</div>
-        <div class="card-desc">Scans Job Descriptions and pinpoints every required skill, tool, and qualification missing from your resume.</div>
+        <div class="card-h">MISSING KEYWORD AUDIT</div>
+        <div class="card-p">Scans Job Descriptions and pinpoints every required skill, tool, and qualification omitted from your resume.</div>
       </div>
 
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">cv-tui dashboard</div>
         <div class="card-icon">🖥️</div>
-        <div class="card-title">TERMINAL UI DASHBOARD</div>
-        <div class="card-desc">Interactive <code>cv-tui</code> dashboard built with Go & Bubble Tea for live platform scoring, grade calculation (A–F), and missing keyword lists.</div>
+        <div class="card-h">TERMINAL UI DASHBOARD</div>
+        <div class="card-p">Interactive <code>cv-tui</code> dashboard built with Go & Bubble Tea for live platform scoring, grade calculation (A-F), and recommendations.</div>
       </div>
 
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">skill registration</div>
         <div class="card-icon">🤖</div>
-        <div class="card-title">UNIVERSAL AI SKILL</div>
-        <div class="card-desc">Auto-discovered skill for <strong>Antigravity</strong> (<code>agy</code>), <strong>Claude Code</strong> (<code>claude</code>), <strong>Codex</strong>, and <strong>OpenCode</strong>. Just say <code>/cv-optimizer</code>.</div>
+        <div class="card-h">UNIVERSAL AI SKILL</div>
+        <div class="card-p">Auto-discovered skill for <strong>Antigravity</strong> (<code>agy</code>), <strong>Claude Code</strong> (<code>claude</code>), <strong>Codex</strong>, and <strong>OpenCode</strong>. Just say <code>/cv-optimizer</code>.</div>
       </div>
 
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">optimize.sh</div>
         <div class="card-icon">⚡</div>
-        <div class="card-title">HEADLESS AI REWRITER</div>
-        <div class="card-desc">Background execution script (<code>optimize.sh</code>) that orchestrates LLMs to rewrite your CV without manual copy-pasting.</div>
+        <div class="card-h">HEADLESS AI REWRITER</div>
+        <div class="card-p">Background execution script (<code>optimize.sh</code>) that orchestrates LLMs to rewrite your CV content without manual copy-pasting.</div>
       </div>
 
-      <div class="feature-card">
+      <div class="font-card">
+        <div class="window-dots"><span></span><span></span><span></span></div>
+        <div class="window-title">tectonic compiler</div>
         <div class="card-icon">📄</div>
-        <div class="card-title">TECTONIC PDF TYPESETTING</div>
-        <div class="card-desc">Compiles optimized LaTeX code directly into clean, production-grade PDF resumes ready for submission.</div>
+        <div class="card-h">TECTONIC PDF COMPILER</div>
+        <div class="card-p">Compiles optimized LaTeX code directly into clean, production-grade PDF resumes ready for job applications.</div>
       </div>
     </div>
 
-    <div class="tools-banner">
-      <h3>SUPPORTED AI CODING CLIs</h3>
-      <div class="tool-tags">
-        <span class="tool-tag">agy (Antigravity)</span>
-        <span class="tool-tag">claude (Claude Code)</span>
-        <span class="tool-tag">codex (Codex)</span>
-        <span class="tool-tag">opencode (OpenCode)</span>
-        <span class="tool-tag">cv-tui (Standalone CLI)</span>
+    <!-- Supported Tools Banner -->
+    <div class="tools-window">
+      <div class="window-dots"><span></span><span></span><span></span></div>
+      <div class="window-title">agent_integrations</div>
+      <div class="card-h" style="font-size: 13px; margin-top: 6px;">SUPPORTED AI CODING CLIs</div>
+      <div class="tag-group">
+        <span class="tag">agy (Antigravity)</span>
+        <span class="tag">claude (Claude Code)</span>
+        <span class="tag">codex (Codex)</span>
+        <span class="tag">opencode (OpenCode)</span>
+        <span class="tag">cv-tui (Standalone CLI)</span>
       </div>
     </div>
 
-    <h2 id="platforms" class="section-header">👾 ATS PLATFORM STRATEGIES</h2>
+    <!-- Platforms Table -->
+    <h2 id="platforms" class="section-title">ATS PLATFORM STRATEGIES</h2>
+    <p class="section-subtitle">// Tailored optimization profiles per ATS vendor</p>
 
-    <div class="pixel-box pixel-box-neon table-box">
+    <div class="table-window">
+      <div class="window-dots"><span></span><span></span><span></span></div>
+      <div class="window-title">ats_strategies.json</div>
       <table>
         <thead>
           <tr>
@@ -497,6 +524,7 @@
         </tbody>
       </table>
     </div>
+
   </main>
 
   <footer>
@@ -509,12 +537,13 @@
     function copyCmd() {
       const cmdText = document.getElementById('cmd-text').innerText;
       navigator.clipboard.writeText(cmdText);
-      const btn = document.querySelector('.pixel-btn');
+      const btn = document.querySelector('.pixel-btn-yellow');
       btn.innerText = 'COPIED!';
       setTimeout(() => {
-        btn.innerText = 'COPY COMMAND';
+        btn.innerText = 'COPY';
       }, 2000);
     }
   </script>
 </body>
+
 </html>
